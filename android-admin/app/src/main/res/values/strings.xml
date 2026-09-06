@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Menu QR Patron</string>
+    <string name="title_activity_main">Menu QR Patron</string>
+    <string name="package_name">com.menuqr.patron</string>
+    <string name="custom_url_scheme">com.menuqr.patron</string>
+</resources>

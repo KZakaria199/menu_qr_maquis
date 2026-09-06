@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>Gestion abonnement</title>
+
+<style>
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f2f2f2;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 600px;
+    margin: auto;
+}
+
+h1 {
+    text-align: center;
+}
+
+.abonnement {
+    background: white;
+    padding: 20px;
+    margin-bottom: 15px;
+    border-radius: 15px;
+
+    box-shadow:
+        0 3px 10px
+        rgba(0,0,0,0.1);
+}
+
+#statutAbonnement {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 15px;
+    box-shadow:
+        0 3px 10px
+        rgba(0,0,0,0.1);
+} 
+
+.abonnement h2 {
+    margin-top: 0;
+}
+
+.prix {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+button {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 10px;
+
+    font-size: 16px;
+    font-weight: bold;
+
+    cursor: pointer;
+
+    margin-top: 10px;
+
+    background: #111;
+    color: white;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+#paiement {
+    display: none;
+
+    background: white;
+
+    padding: 20px;
+
+    border-radius: 15px;
+
+    margin-top: 20px;
+
+    text-align: center;
+}
+
+#codePaiement {
+    font-size: 22px;
+    font-weight: bold;
+
+    word-break: break-all;
+
+    padding: 15px;
+
+    background: #eee;
+
+    border-radius: 10px;
+
+    margin-top: 10px;
+}
+
+.info {
+    color: #555;
+    line-height: 1.5;
+}
+
+.retour {
+    display: block;
+    text-align: center;
+
+    margin-top: 20px;
+
+    text-decoration: none;
+
+    font-weight: bold;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+<h1>
+    💳 Gestion abonnement
+</h1>
+
+<div id="statutAbonnement">
+
+    ⏳ Chargement de votre abonnement...
+
+</div> 
+
+<div class="abonnement">
+
+    <h2>
+        📅 30 jours
+    </h2>
+
+    <p>
+        1 mois d'abonnement
+    </p>
+
+    <p class="prix">
+        10 000 FCFA
+    </p>
+
+    <button
+        onclick="choisirAbonnement(
+            30,
+            10000,
+            '*144*10*77656404*10000#'
+        )"
+    >
+        Choisir 30 jours
+    </button>
+
+</div>
+
+
+
+<div class="abonnement">
+
+    <h2>
+        📅 90 jours
+    </h2>
+
+    <p>
+        3 mois d'abonnement
+    </p>
+
+    <p class="prix">
+        30 000 FCFA
+    </p>
+
+    <button
+        onclick="choisirAbonnement(
+            90,
+            30000,
+            '*144*10*77656404*30000#'
+        )"
+    >
+        Choisir 90 jours
+    </button>
+
+</div>
+
+
+
+<div class="abonnement">
+
+    <h2>
+        📅 365 jours
+    </h2>
+
+    <p>
+        1 an d'abonnement
+    </p>
+
+    <p class="prix">
+        120 000 FCFA
+    </p>
+
+    <button
+        onclick="choisirAbonnement(
+            365,
+            120000,
+            '*144*10*77656404*120000#'
+        )"
+    >
+        Choisir 1 an
+    </button>
+
+</div>
+
+
+
+<div id="paiement">
+
+    <h2>
+        📱 Paiement
+    </h2>
+
+    <p id="choixAbonnement"></p>
+
+    <p class="info">
+        Composez le code suivant sur votre téléphone pour effectuer le paiement :
+    </p>
+
+    <div id="codePaiement"></div>
+
+    <p class="info">
+        ⚠️ Après le paiement, votre abonnement sera activé après vérification de votre paiement.
+        en cas de soucie contacter le +22674535387 (diponible appel ou whatsap) 
+    </p>
+ 
+    <p class="info">
+    <strong>VERY Z</strong>
+</p> 
+
+</div>
+
+
+<a
+    href="/patron/dashboard"
+    class="retour"
+>
+    ← Retour au tableau de bord
+</a>
+
+
+</div>
+
+
+<script>
+
+function choisirAbonnement(
+    jours,
+    prix,
+    code
+) {
+
+    document.getElementById(
+        "paiement"
+    ).style.display =
+        "block";
+
+
+    document.getElementById(
+        "choixAbonnement"
+    ).textContent =
+        jours +
+        " jours — " +
+        prix +
+        " FCFA";
+
+
+    document.getElementById(
+        "codePaiement"
+    ).textContent =
+        code;
+
+
+    document.getElementById(
+        "paiement"
+    ).scrollIntoView({
+        behavior: "smooth"
+    });
+
+}
+async function chargerAbonnement() {
+
+    try {
+
+        const response =
+            await fetch(
+                "/patron/abonnement/info"
+            );
+
+        const maquis =
+            await response.json();
+
+        if (!response.ok) {
+
+            document.getElementById(
+                "statutAbonnement"
+            ).innerHTML =
+                "❌ Impossible de charger l'abonnement.";
+
+            return;
+
+        }
+
+
+        const zone =
+            document.getElementById(
+                "statutAbonnement"
+            );
+
+
+        if (
+            !maquis.abonnement_fin
+        ) {
+
+            zone.innerHTML = `
+                <h3>
+                    ⚠️ Aucun abonnement actif
+                </h3>
+
+                <p>
+                abonner vous et profiter du meilleur offres
+                </p>
+            `;
+
+            return;
+
+        }
+
+
+        const dateFin =
+            new Date(
+                maquis.abonnement_fin
+            );
+
+
+        const maintenant =
+            new Date();
+
+
+        if (
+            dateFin < maintenant
+        ) {
+
+            zone.innerHTML = `
+                <h3>
+                    ❌ Abonnement expiré
+                </h3>
+
+                <p>
+                    Votre abonnement a expiré le :
+                    <strong>
+                        ${dateFin.toLocaleDateString(
+                            "fr-FR"
+                        )}
+                    </strong>
+                </p>
+            `;
+
+        } else {
+
+            const difference =
+                dateFin - maintenant;
+
+
+            const joursRestants =
+                Math.ceil(
+                    difference /
+                    (
+                        1000 *
+                        60 *
+                        60 *
+                        24
+                    )
+                );
+
+
+            zone.innerHTML = `
+                <h3>
+                    ✅ Abonnement actif
+                </h3>
+
+                <p>
+                    Il vous reste :
+                    <strong>
+                        ${joursRestants} jour(s)
+                    </strong>
+                </p>
+
+                <p>
+                    Expire le :
+                    <strong>
+                        ${dateFin.toLocaleDateString(
+                            "fr-FR"
+                        )}
+                    </strong>
+                </p>
+            `;
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Erreur abonnement :",
+            error
+        );
+
+        document.getElementById(
+            "statutAbonnement"
+        ).innerHTML =
+            "❌ Erreur de connexion.";
+
+    }
+
+}
+
+
+chargerAbonnement(); 
+
+
+</script>
+
+</body>
+
+</html> 

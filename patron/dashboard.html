@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Espace Patron</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f6fa;
+            color: #222;
+        }
+
+        header {
+            background: #111;
+            color: white;
+            padding: 25px;
+        }
+
+        header h1 {
+            margin-bottom: 8px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+            padding: 25px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,.07);
+        }
+
+        .card h3 {
+            margin-bottom: 10px;
+        }
+
+        .menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+        }
+
+        .button {
+            display: block;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #111;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,.07);
+        }
+
+        .button:hover {
+            background: #eee;
+        }
+
+        .logout {
+            display: inline-block;
+            margin-top: 20px;
+            background: #c00;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+        }
+    </style>
+    <link
+    rel="manifest"
+    href="/patron-app/manifest.json"
+>
+
+<meta
+    name="theme-color"
+    content="#222222"
+>
+
+<script>
+
+if ("serviceWorker" in navigator) {
+
+    window.addEventListener(
+        "load",
+        () => {
+
+            navigator.serviceWorker.register(
+                "/patron-app/sw.js"
+            );
+
+        }
+    );
+
+}
+
+</script> 
+
+</head>
+
+<body>
+
+<header>
+    <h1>👤 Espace Patron</h1>
+    <p id="nomPatron">Chargement...</p>
+</header>
+
+<div class="container">
+
+    <div class="cards">
+
+        <div class="card">
+            <h3>🏪 Mon maquis</h3>
+            <p id="nomMaquis">Chargement...</p>
+        </div>
+
+        <div class="card">
+            <h3>💳 Abonnement</h3>
+            <p id="abonnement">Chargement...</p>
+        </div>
+
+        <div class="card">
+            <h3>🍽️ Produits</h3>
+            <p id="produits">0</p>
+        </div>
+
+        <div class="card">
+            <h3>📦 Commandes</h3>
+            <p id="commandes">0</p>
+        </div>
+
+    </div>
+
+    <h2 style="margin-bottom:20px;">Gestion de mon maquis</h2>
+
+    <div class="menu">
+
+        <a href="/patron/produits" class="button">
+            🍽️ Gérer les produits
+        </a>
+
+        <a href="/patron/categories" class="button">
+            📂 Gérer les catégories
+        </a>
+
+        <a href="/patron/tables" class="button">
+            🪑 Gérer les tables
+        </a>
+
+        <a href="/patron/qrcodes" class="button">
+            📱 Gérer les QR Codes
+        </a>
+
+        <a href="/patron/commandes" class="button">
+            📦 Voir les commandes
+        </a>
+
+        <a href="/patron/parametres" class="button">
+            ⚙️ Paramètres du maquis
+        </a>
+
+     <a href="/patron/abonnement">
+    💳 Gestion abonnement
+</a> 
+
+    </div>
+
+    <a href="/patron/logout" class="logout">
+        🚪 Se déconnecter
+    </a>
+
+</div>
+
+<script>
+
+async function chargerDashboard() {
+
+    try {
+
+        const response = await fetch("/patron/dashboard-data");
+
+        if (!response.ok) {
+            window.location.href = "/patron/login";
+            return;
+        }
+
+        const data = await response.json();
+
+        document.getElementById("nomPatron").textContent =
+            "Bienvenue " + data.patron.nom;
+
+        document.getElementById("nomMaquis").textContent =
+            data.maquis.nom;
+
+        document.getElementById("abonnement").textContent =
+            data.abonnement
+                ? "Actif jusqu'au " + data.abonnement.date_fin
+                : "Aucun abonnement";
+
+        document.getElementById("produits").textContent =
+            data.produits;
+
+        document.getElementById("commandes").textContent =
+            data.commandes;
+
+    } catch (error) {
+
+        console.error(error);
+
+    }
+}
+
+chargerDashboard();
+
+</script>
+
+<button
+    id="installerApp"
+    onclick="installerApplication()"
+    style="
+        display:none;
+        padding:12px 18px;
+        border:none;
+        border-radius:8px;
+        background:#222;
+        color:white;
+        cursor:pointer;
+    "
+>
+    📲 Installer mon application
+</button>
+
+<script
+    src="/patron-app/install.js"
+></script> 
+</body>
+</html> 

@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>Gestion des Menus</title>
+
+<style>
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+
+    font-family: Arial, sans-serif;
+
+    background: #f4f6f9;
+
+    padding: 20px;
+
+}
+
+.header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 25px;
+
+}
+
+h1 {
+
+    color: #222;
+
+}
+
+.retour {
+
+    background: #222;
+
+    color: white;
+
+    padding: 12px 18px;
+
+    text-decoration: none;
+
+    border-radius: 8px;
+
+}
+
+.container {
+
+    background: white;
+
+    padding: 20px;
+
+    border-radius: 12px;
+
+    box-shadow:
+        0 3px 10px rgba(0,0,0,0.1);
+
+}
+
+select {
+
+    width: 100%;
+
+    padding: 14px;
+
+    font-size: 16px;
+
+    border-radius: 8px;
+
+    border: 1px solid #ccc;
+
+    margin-bottom: 25px;
+
+}
+
+table {
+
+    width: 100%;
+
+    border-collapse: collapse;
+
+}
+
+th {
+
+    background: #222;
+
+    color: white;
+
+    padding: 12px;
+
+    text-align: left;
+
+}
+
+td {
+
+    padding: 12px;
+
+    border-bottom:
+        1px solid #ddd;
+
+}
+
+.photo {
+
+    width: 60px;
+
+    height: 60px;
+
+    object-fit: cover;
+
+    border-radius: 8px;
+
+}
+
+.disponible {
+
+    color: green;
+
+    font-weight: bold;
+
+}
+
+.indisponible {
+
+    color: red;
+
+    font-weight: bold;
+
+}
+
+.vide {
+
+    text-align: center;
+
+    padding: 30px;
+
+    color: #777;
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="header">
+
+    <h1>🍽️ Gestion des Menus</h1>
+
+    <a
+        href="/admin/dashboard"
+        class="retour"
+    >
+        ← Retour
+    </a>
+
+</div>
+
+
+<div class="container">
+
+
+<h3 style="margin-bottom: 10px;">
+    Choisir un maquis
+</h3>
+
+
+<select id="selectMaquis">
+
+    <option value="">
+        -- Sélectionner un maquis --
+    </option>
+
+</select>
+
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Photo</th>
+
+<th>Produit</th>
+
+<th>Catégorie</th>
+
+<th>Prix</th>
+
+<th>Description</th>
+
+<th>Disponibilité</th>
+
+</tr>
+
+</thead>
+
+
+<tbody id="listeProduits">
+
+<tr>
+
+<td
+    colspan="6"
+    class="vide"
+>
+
+Sélectionnez un maquis.
+
+</td>
+
+</tr>
+
+</tbody>
+
+
+</table>
+
+
+</div>
+
+
+<script>
+
+
+const selectMaquis =
+    document.getElementById(
+        "selectMaquis"
+    );
+
+
+const listeProduits =
+    document.getElementById(
+        "listeProduits"
+    );
+
+
+// ===============================
+// CHARGER LES MAQUIS
+// ===============================
+
+async function chargerMaquis() {
+
+    try {
+
+        const response =
+            await fetch(
+                "/admin/menus/maquis"
+            );
+
+
+        const maquis =
+            await response.json();
+
+
+        maquis.forEach(item => {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+
+            option.value =
+                item.id;
+
+
+            option.textContent =
+                item.nom;
+
+
+            selectMaquis.appendChild(
+                option
+            );
+
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            "Impossible de charger les maquis."
+        );
+
+    }
+
+}
+
+
+// ===============================
+// CHARGER LES PRODUITS
+// ===============================
+
+async function chargerProduits(
+    maquisId
+) {
+
+    if (!maquisId) {
+
+        listeProduits.innerHTML = `
+
+        <tr>
+
+        <td
+            colspan="6"
+            class="vide"
+        >
+
+        Sélectionnez un maquis.
+
+        </td>
+
+        </tr>
+
+        `;
+
+        return;
+
+    }
+
+
+    listeProduits.innerHTML = `
+
+    <tr>
+
+    <td
+        colspan="6"
+        class="vide"
+    >
+
+    Chargement...
+
+    </td>
+
+    </tr>
+
+    `;
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/admin/menus/produits/" +
+                maquisId
+            );
+
+
+        const produits =
+            await response.json();
+
+
+        listeProduits.innerHTML =
+            "";
+
+
+        if (
+            produits.length === 0
+        ) {
+
+            listeProduits.innerHTML = `
+
+            <tr>
+
+            <td
+                colspan="6"
+                class="vide"
+            >
+
+            Aucun produit dans ce maquis.
+
+            </td>
+
+            </tr>
+
+            `;
+
+            return;
+
+        }
+
+
+        produits.forEach(
+            produit => {
+
+                let photo =
+                    "-";
+
+
+                if (
+                    produit.photo
+                ) {
+
+                    photo = `
+
+                    <img
+                        src="${produit.photo}"
+                        class="photo"
+                    >
+
+                    `;
+
+                }
+
+
+                const disponibilite =
+                    produit.disponible
+                    ?
+                    `<span class="disponible">
+                    Disponible
+                    </span>`
+                    :
+                    `<span class="indisponible">
+                    Indisponible
+                    </span>`;
+
+
+                listeProduits.innerHTML += `
+
+                <tr>
+
+                <td>
+                    ${photo}
+                </td>
+
+                <td>
+                    ${produit.nom}
+                </td>
+
+                <td>
+                    ${produit.categorie || "-"}
+                </td>
+
+                <td>
+                    ${produit.prix} FCFA
+                </td>
+
+                <td>
+                    ${
+                        produit.description ||
+                        "-"
+                    }
+                </td>
+
+                <td>
+                    ${disponibilite}
+                </td>
+
+                </tr>
+
+                `;
+
+            }
+        );
+
+
+    } catch (error) {
+
+        console.error(error);
+
+
+        listeProduits.innerHTML = `
+
+        <tr>
+
+        <td
+            colspan="6"
+            class="vide"
+        >
+
+        Erreur lors du chargement.
+
+        </td>
+
+        </tr>
+
+        `;
+
+    }
+
+}
+
+
+// ===============================
+// CHANGEMENT DU MAQUIS
+// ===============================
+
+selectMaquis.addEventListener(
+    "change",
+    function() {
+
+        chargerProduits(
+            this.value
+        );
+
+    }
+);
+
+
+// Démarrage
+
+chargerMaquis();
+
+
+</script>
+
+
+</body>
+
+</html> 

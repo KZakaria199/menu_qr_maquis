@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>Gestion des Maquis</title>
+
+<style>
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+
+    font-family: Arial, sans-serif;
+
+    background: #f4f6f9;
+
+    padding: 20px;
+
+}
+
+.header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 25px;
+
+}
+
+h1 {
+
+    color: #222;
+
+}
+
+.retour {
+
+    background: #333;
+
+    color: white;
+
+    padding: 12px 18px;
+
+    text-decoration: none;
+
+    border-radius: 8px;
+
+}
+
+.container {
+
+    background: white;
+
+    padding: 20px;
+
+    border-radius: 12px;
+
+    box-shadow:
+        0 3px 10px rgba(0,0,0,0.1);
+
+}
+
+table {
+
+    width: 100%;
+
+    border-collapse: collapse;
+
+}
+
+th {
+
+    background: #222;
+
+    color: white;
+
+    padding: 14px;
+
+    text-align: left;
+
+}
+
+td {
+
+    padding: 12px;
+
+    border-bottom:
+        1px solid #ddd;
+
+}
+
+.actif {
+
+    color: green;
+
+    font-weight: bold;
+
+}
+
+.inactif {
+
+    color: red;
+
+    font-weight: bold;
+
+}
+
+.vide {
+
+    text-align: center;
+
+    padding: 30px;
+
+    color: #777;
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="header">
+
+    <h1>🏪 Gestion des Maquis</h1>
+
+    <a
+        href="/admin/dashboard"
+        class="retour"
+    >
+        ← Retour
+    </a>
+
+</div>
+
+
+<div class="container">
+
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>ID</th>
+
+<th>Maquis</th>
+
+<th>Patron</th>
+
+<th>Téléphone</th>
+
+<th>Adresse</th>
+
+<th>Statut</th>
+
+<th>Abonnement</th>
+
+</tr>
+
+</thead>
+
+
+<tbody id="listeMaquis">
+
+<tr>
+
+<td
+    colspan="7"
+    class="vide"
+>
+
+Chargement...
+
+</td>
+
+</tr>
+
+</tbody>
+
+
+</table>
+
+
+</div>
+
+
+
+<script>
+
+
+async function chargerMaquis() {
+
+    try {
+
+        const response =
+            await fetch(
+                "/admin/maquis/liste"
+            );
+
+
+        const maquis =
+            await response.json();
+
+
+        const liste =
+            document.getElementById(
+                "listeMaquis"
+            );
+
+
+        liste.innerHTML = "";
+
+
+        if (maquis.length === 0) {
+
+            liste.innerHTML = `
+           
+            <tr>
+
+            <td
+                colspan="7"
+                class="vide"
+            >
+
+            Aucun maquis enregistré.
+
+            </td>
+
+            </tr>
+
+            `;
+
+            return;
+
+        }
+
+
+        maquis.forEach(item => {
+
+
+            const statut =
+                item.actif
+                ?
+                `<span class="actif">
+                Actif
+                </span>`
+                :
+                `<span class="inactif">
+                Suspendu
+                </span>`;
+
+
+            let abonnement =
+                "Aucun abonnement";
+
+
+            if (item.abonnement_fin) {
+
+                const date =
+                    new Date(
+                        item.abonnement_fin
+                    );
+
+
+                abonnement =
+                    date.toLocaleDateString(
+                        "fr-FR"
+                    );
+
+            }
+
+
+            liste.innerHTML += `
+
+            <tr>
+
+            <td>
+                ${item.id}
+            </td>
+
+
+            <td>
+                ${item.nom}
+            </td>
+
+
+            <td>
+                ${item.nom_patron || "-"}
+            </td>
+
+
+            <td>
+                ${item.telephone || "-"}
+            </td>
+
+
+            <td>
+                ${item.adresse || "-"}
+            </td>
+
+
+            <td>
+                ${statut}
+            </td>
+
+
+            <td>
+                ${abonnement}
+            </td>
+
+
+            </tr>
+
+            `;
+
+
+        });
+
+
+    } catch (error) {
+
+        console.error(error);
+
+
+        document.getElementById(
+            "listeMaquis"
+        ).innerHTML = `
+
+        <tr>
+
+        <td
+            colspan="7"
+            class="vide"
+        >
+
+        Erreur lors du chargement.
+
+        </td>
+
+        </tr>
+
+        `;
+
+    }
+
+}
+
+
+chargerMaquis();
+
+
+</script>
+
+
+</body>
+
+</html> 
+

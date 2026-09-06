@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Menu</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #e4e7e7;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 700px;
+    margin: auto;
+}
+
+.produit {
+    background: rgb(98, 6, 245);
+    padding: 15px;
+    border-radius: 15px;
+    margin-bottom: 15px;
+}
+
+.produit img {
+    width: 100%;
+    max-width: 250px;
+    border-radius: 10px;
+}
+
+.prix {
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.indisponible {
+    color: red;
+}
+#infosMaquis {
+    text-align: center;
+    padding: 20px;
+}
+
+#logoMaquis img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-bottom: 10px;
+}
+
+#nomMaquis {
+    margin: 0;
+} 
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    overflow-x: hidden;
+}
+
+#infosMaquis {
+    width: 100%;
+    text-align: center;
+    padding: 15px 10px;
+    box-sizing: border-box;
+}
+
+#logoMaquis img {
+    width: 90px;
+    height: 90px;
+    max-width: 30vw;
+    max-height: 30vw;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+#nomMaquis {
+    font-size: clamp(22px, 7vw, 32px);
+    word-wrap: break-word;
+    margin: 10px 0;
+}
+
+/* Adaptation pour téléphone */
+@media (max-width: 600px) {
+
+    #infosMaquis {
+        padding: 12px 8px;
+    }
+
+    #logoMaquis img {
+        width: 75px;
+        height: 75px;
+    }
+
+    #nomMaquis {
+        font-size: 24px;
+    }
+
+} 
+#boutonPanierFlottant {
+    position: fixed;
+    bottom: 25px;
+    right: 20px;
+
+    width: 60px;
+    height: 60px;
+
+    border-radius: 50%;
+
+    background: #111;
+    color: white;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 28px;
+
+    cursor: pointer;
+
+    z-index: 9999;
+
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+
+#badgePanier {
+    position: absolute;
+
+    top: -5px;
+    right: -5px;
+
+    min-width: 24px;
+    height: 24px;
+
+    padding: 2px 5px;
+
+    border-radius: 50%;
+
+    background: red;
+    color: white;
+
+    font-size: 14px;
+    font-weight: bold;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+} 
+
+#boutonPanierFlottant {
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+
+    width: 60px !important;
+    height: 60px !important;
+
+    background: #111 !important;
+    color: white !important;
+
+    border-radius: 50% !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    font-size: 28px !important;
+
+    z-index: 99999 !important;
+
+    cursor: pointer;
+}
+
+#badgePanier {
+    position: absolute;
+
+    top: -8px;
+    right: -8px;
+
+    min-width: 25px;
+    height: 25px;
+
+    background: red;
+    color: white;
+
+    border-radius: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 14px;
+    font-weight: bold;
+} 
+
+</style>
+</head>
+
+<body>
+<div id="infosMaquis">
+
+    <div id="logoMaquis"></div>
+
+    <h1 id="nomMaquis">
+        Chargement...
+    </h1>
+
+</div> 
+
+
+<div class="container">
+
+<h1 id="nomMaquis">🍽️ Menu</h1>
+
+<h3 id="table"></h3>
+<div id="panier" style="
+    background:rgb(7, 245, 59);
+    padding:15px;
+    border-radius:15px;
+    margin-bottom:20px;
+">
+
+    🛒 Panier (
+    <strong id="nombrePanier">0</strong>
+    article(s)) :
+   
+    <strong id="totalPanier">
+        0 FCFA
+    </strong>
+
+
+    <div id="articlesPanier">
+        <p>Panier vide.</p>
+    </div>
+
+
+    <button onclick="commander()" style="
+        width:100%;
+        padding:14px;
+        background:#111;
+        color:white;
+        border:none;
+        border-radius:10px;
+        font-weight:bold;
+        margin-top:10px;
+    ">
+        📲 COMMANDER
+    </button>
+
+</div> 
+
+
+<div id="liste">
+    Chargement...
+</div>
+
+</div>
+
+<script>
+
+const params = new URLSearchParams(window.location.search);
+const numeroTable = params.get("table");
+
+document.getElementById("table").textContent =
+    numeroTable
+    ? "🪑 Table " + numeroTable
+    : "Table non précisée";
+
+    async function chargerInfosMaquis() {
+
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    const table =
+        params.get("table");
+
+
+    if (!table) {
+
+        document.getElementById(
+            "nomMaquis"
+        ).textContent =
+            "Menu du Maquis";
+
+        return;
+
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                `/menu/maquis/${table}`
+            );
+
+
+        const maquis =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            console.error(
+                maquis.error
+            );
+
+            return;
+
+        }
+
+
+        document.getElementById(
+            "nomMaquis"
+        ).textContent =
+            maquis.nom;
+
+
+        const zoneLogo =
+            document.getElementById(
+                "logoMaquis"
+            );
+
+
+        if (maquis.logo) {
+
+            zoneLogo.innerHTML = `
+                <img
+                    src="${maquis.logo}"
+                    alt="${maquis.nom}"
+                >
+            `;
+
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            "Erreur chargement maquis :",
+            error
+        );
+
+    }
+
+} 
+
+async function chargerMenu() {
+
+    const response =
+        await fetch(`/menu/produits?table=${numeroTable}`);
+
+    const resultat =
+        await response.json();
+
+    if (!response.ok) {
+        document.getElementById("liste").innerHTML =
+            `<p>❌ ${resultat.error || "Erreur"}</p>`;
+        return;
+    }
+
+    document.getElementById("nomMaquis").textContent =
+        "🍽️ " + resultat.maquis.nom;
+
+    if (resultat.produits.length === 0) {
+        document.getElementById("liste").innerHTML =
+            "<p>Aucun produit disponible.</p>";
+        return;
+    }
+
+   window.produits = resultat.produits;
+
+liste.innerHTML =
+    resultat.produits.map(produit => `
+        <div class="produit">
+
+            ${produit.photo ? `
+                <img src="${produit.photo}">
+            ` : ""}
+
+            <h2>${produit.nom}</h2>
+
+            <p>${produit.description || ""}</p>
+
+            <p class="prix">
+                💰 ${produit.prix} FCFA
+            </p>
+
+            <button
+    id="boutonProduit-${produit.id}"
+    onclick="ajouterAuPanier(${produit.id})"
+>
+    ➕ Ajouter au panier
+</button> 
+
+        </div>
+    `).join(""); 
+ 
+}
+async function commander() {
+
+    if (panier.length === 0) {
+        alert("🛒 Votre panier est vide.");
+        return;
+    }
+
+    const response = await fetch("/menu/commande", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            table: numeroTable,
+            produits: panier
+        })
+    });
+
+    const resultat = await response.json();
+
+    if (!response.ok) {
+        alert("❌ " + (resultat.error || "Erreur"));
+        return;
+    }
+
+    alert("✅ Commande envoyée au maquis !");
+
+    panier = [];
+
+    afficherPanier();
+}
+
+chargerMenu(); 
+
+let panier = [];
+
+function ajouterAuPanier(id) {
+
+    const produit =
+        window.produits.find(p => p.id == id);
+
+    if (!produit) return;
+
+    const existant =
+        panier.find(p => p.id == id);
+
+if (existant) {
+
+    existant.quantite++;
+
+} else {
+
+    panier.push({
+        id: produit.id,
+        nom: produit.nom,
+        prix: Number(produit.prix),
+        quantite: 1
+    });
+
+} 
+
+    afficherPanier();
+}
+function augmenterQuantite(id) {
+
+    const produit =
+        panier.find(p => p.id == id);
+
+    if (!produit) return;
+
+    produit.quantite++;
+
+    afficherPanier();
+
+}
+
+
+function diminuerQuantite(id) {
+
+    const index =
+        panier.findIndex(p => p.id == id);
+
+    if (index === -1) return;
+
+    panier[index].quantite--;
+
+    if (panier[index].quantite <= 0) {
+
+        panier.splice(index, 1);
+
+    }
+
+    afficherPanier();
+
+}
+
+
+function supprimerDuPanier(id) {
+
+    panier =
+        panier.filter(p => p.id != id);
+
+    afficherPanier();
+
+} 
+
+
+afficherPanier();
+
+const bouton =
+    document.getElementById(
+        `boutonProduit-${id}`
+    );
+
+if (bouton) {
+
+    bouton.style.background =
+        "#28a745";
+
+    bouton.style.color =
+        "white";
+
+    bouton.textContent =
+        "✓ Ajouté";
+
+    setTimeout(() => {
+
+        bouton.style.background =
+            "";
+
+        bouton.style.color =
+            "";
+
+        bouton.textContent =
+            "➕ Ajouter au panier";
+
+    }, 800);
+
+} 
+
+     function afficherPanier() {
+
+    const articles =
+        document.getElementById("articlesPanier");
+
+    const totalElement =
+        document.getElementById("totalPanier");
+
+    const nombreElement =
+        document.getElementById("nombrePanier");
+
+// CALCULER LE NOMBRE TOTAL D'ARTICLES
+const nombreArticles =
+    panier.reduce(
+        (total, produit) =>
+            total + Number(produit.quantite || 0),
+        0
+    );
+
+
+// AFFICHER LE NOMBRE DANS LE PANIER
+nombreElement.textContent =
+    nombreArticles;
+
+
+// AFFICHER LE NOMBRE SUR LE PETIT PANIER FLOTTANT
+const badgePanier =
+    document.getElementById(
+        "badgePanier"
+    );
+
+if (badgePanier) {
+
+    badgePanier.textContent =
+        nombreArticles;
+
+} 
+
+
+    // PANIER VIDE
+    if (panier.length === 0) {
+
+        articles.innerHTML =
+            "<p>Panier vide.</p>";
+
+        totalElement.textContent =
+            "0 FCFA";
+
+        return;
+    }
+
+
+    let total = 0;
+
+
+    articles.innerHTML =
+        panier.map(p => {
+
+            const sousTotal =
+                Number(p.prix) *
+                Number(p.quantite);
+
+            total += sousTotal;
+
+
+            return `
+                <div style="
+                    padding:10px 0;
+                    border-bottom:1px solid #ddd;
+                ">
+
+                    <strong>
+                        🍽️ ${p.nom}
+                    </strong>
+
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        align-items:center;
+                        margin-top:8px;
+                    ">
+
+                        <button
+                            onclick="diminuerQuantite(${p.id})"
+                        >
+                            ➖
+                        </button>
+
+
+                        <strong>
+                            ${p.quantite}
+                        </strong>
+
+
+                        <button
+                            onclick="augmenterQuantite(${p.id})"
+                        >
+                            ➕
+                        </button>
+
+
+                        <button
+                            onclick="supprimerDuPanier(${p.id})"
+                        >
+                            🗑️
+                        </button>
+
+                    </div>
+
+
+                    <div style="
+                        text-align:right;
+                        margin-top:5px;
+                    ">
+
+                        <strong>
+                            ${sousTotal} FCFA
+                        </strong>
+
+                    </div>
+
+                </div>
+            `;
+
+        }).join("");
+
+
+    totalElement.textContent =
+        total + " FCFA";
+
+} 
+
+   
+function allerAuPanier() {
+
+    const panierElement =
+        document.getElementById("panier");
+
+    if (panierElement) {
+
+        panierElement.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+
+    }
+
+} 
+
+chargerInfosMaquis();
+
+</script>
+
+<div id="boutonPanierFlottant" onclick="allerAuPanier()">
+    🛒
+    <span id="badgePanier">0</span>
+</div>
+
+</body>
+</html> 

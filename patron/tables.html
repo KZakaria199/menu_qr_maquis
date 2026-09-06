@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Mes tables</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f6fa;
+    margin: 0;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.formulaire {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 25px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.06);
+}
+
+input {
+    width: 100%;
+    padding: 13px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+button {
+    border: none;
+    padding: 12px 16px;
+    border-radius: 10px;
+    background: #111;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+.table-card {
+    background: white;
+    padding: 20px;
+    margin-bottom: 15px;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.06);
+}
+
+.table-card h2 {
+    margin-top: 0;
+}
+
+.qr {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.qr img {
+    width: 200px;
+    max-width: 100%;
+}
+
+.message {
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>🪑 Tables de mon maquis</h1>
+
+
+<div class="formulaire">
+
+    <input
+        type="number"
+        id="numero"
+        placeholder="Numéro de table"
+        min="1"
+    >
+
+    <button onclick="ajouterTable()">
+        ➕ Ajouter
+    </button>
+
+</div>
+
+
+<div id="liste">
+    Chargement des tables...
+</div>
+
+
+<script>
+
+// ===============================
+// ACTIVER / DÉSACTIVER UNE TABLE
+// ===============================
+
+async function changerStatut(id) {
+
+    try {
+
+        const response = await fetch(
+            `/patron/tables/${id}/statut`,
+            {
+                method: "PUT"
+            }
+        );
+
+        const resultat = await response.json();
+
+        if (!response.ok) {
+            alert("❌ " + (resultat.error || "Erreur"));
+            return;
+        }
+
+        chargerTables();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("❌ Impossible de contacter le serveur.");
+    }
+}
+
+
+// ===============================
+// SUPPRIMER UNE TABLE
+// ===============================
+
+async function supprimerTable(id) {
+
+    if (!confirm("Voulez-vous vraiment supprimer cette table ?")) {
+        return;
+    }
+
+    try {
+
+        const response = await fetch(
+            `/patron/tables/${id}`,
+            {
+                method: "DELETE"
+            }
+        );
+
+        const resultat = await response.json();
+
+        if (!response.ok) {
+            alert("❌ " + (resultat.error || "Erreur"));
+            return;
+        }
+
+        alert("✅ Table supprimée.");
+
+        chargerTables();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("❌ Impossible de contacter le serveur.");
+    }
+} 
+
+// ===============================
+// CHARGER LES TABLES
+// ===============================
+
+async function chargerTables() {
+
+    try {
+
+        const response =
+            await fetch("/patron/tables/liste");
+
+        if (!response.ok) {
+            throw new Error("Impossible de charger les tables");
+        }
+
+        const tables =
+            await response.json();
+
+        const liste =
+            document.getElementById("liste");
+
+
+        if (tables.length === 0) {
+
+            liste.innerHTML =
+                "<p>Aucune table enregistrée.</p>";
+
+            return;
+        }
+
+
+    liste.innerHTML = tables.map(t => `
+
+    <div class="table-card">
+
+        <h2>
+            🪑 Table ${t.numero}
+        </h2>
+
+        <p>
+            ${t.actif
+                ? "🟢 Table active"
+                : "🔴 Table désactivée"}
+        </p>
+
+        <button
+            onclick="genererQR(${t.id})"
+        >
+            📱 Générer le QR Code
+        </button>
+
+        <button
+            onclick="changerStatut(${t.id})"
+        >
+            ${t.actif
+                ? "🔴 Désactiver"
+                : "🟢 Activer"}
+        </button>
+
+        <button
+            onclick="supprimerTable(${t.id})"
+            style="background:#c00;"
+        >
+            🗑️ Supprimer
+        </button>
+
+        <div
+            class="qr"
+            id="qr-${t.id}"
+        >
+
+            ${
+                t.qr_code
+                ? `
+                    <img
+                        src="${t.qr_code}"
+                        alt="QR Code Table ${t.numero}"
+                    >
+                    <p>✅ QR Code déjà généré</p>
+                  `
+                : `
+                    <p>Aucun QR Code pour cette table.</p>
+                  `
+            }
+
+        </div>
+
+    </div>
+
+`).join(""); 
+
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        document.getElementById("liste").innerHTML =
+            "<p>❌ Impossible de charger les tables.</p>";
+    }
+
+}
+
+
+
+// ===============================
+// AJOUTER UNE TABLE
+// ===============================
+
+async function ajouterTable() {
+
+    const numero =
+        document.getElementById("numero").value;
+
+
+    if (!numero) {
+
+        alert("Veuillez entrer un numéro de table.");
+
+        return;
+    }
+
+
+    try {
+
+        const response =
+            await fetch("/patron/tables", {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    numero: Number(numero)
+                })
+            });
+
+
+        const resultat =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            alert(
+                "❌ " +
+                (resultat.error || "Erreur lors de l'ajout")
+            );
+
+            return;
+        }
+
+
+        document.getElementById("numero").value = "";
+
+        chargerTables();
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("❌ Impossible de contacter le serveur.");
+    }
+
+}
+
+
+
+// ===============================
+// GÉNÉRER LE QR CODE
+// ===============================
+
+async function genererQR(id) {
+
+    const zoneQR =
+        document.getElementById(`qr-${id}`);
+
+
+    zoneQR.innerHTML =
+        "⏳ Génération du QR Code...";
+
+
+    try {
+
+        const response =
+            await fetch(`/patron/tables/${id}/qr`, {
+
+                method: "POST"
+            });
+
+
+        const resultat =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                resultat.error || "Erreur QR Code"
+            );
+        }
+
+
+        zoneQR.innerHTML = `
+
+            <img
+                src="${resultat.qr_code}"
+                alt="QR Code"
+            >
+
+            <p>
+                ✅ QR Code généré avec succès
+            </p>
+
+        `;
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        zoneQR.innerHTML = `
+            <p>
+                ❌ ${error.message}
+            </p>
+        `;
+    }
+
+}
+
+
+chargerTables();
+
+</script>
+
+</body>
+</html> 

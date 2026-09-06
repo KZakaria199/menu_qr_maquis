@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Commandes</title>
+</head>
+
+<body>
+<h2 id="compteur">
+    🆕 Nouvelles commandes : 0
+</h2>
+<div id="notification" style="
+    display: none;
+    background: #dff6dd;
+    border: 2px solid #2e8b57;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: bold;
+">
+    🔔 NOUVELLE COMMANDE REÇUE !
+</div> 
+
+<h1>📦 Commandes</h1>
+<div id="stats" style="
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+">
+
+    <div style="padding:15px; border:1px solid #ddd; border-radius:10px;">
+        📦 Total commandes
+        <h2 id="totalCommandes">0</h2>
+    </div>
+
+    <div style="padding:15px; border:1px solid #ddd; border-radius:10px;">
+        🆕 Nouvelles
+        <h2 id="nouvellesCommandes">0</h2>
+    </div>
+
+    <div style="padding:15px; border:1px solid #ddd; border-radius:10px;">
+        👨‍🍳 En préparation
+        <h2 id="preparationCommandes">0</h2>
+    </div>
+
+    <div style="padding:15px; border:1px solid #ddd; border-radius:10px;">
+        💰 Total
+        <div style="
+    padding:15px;
+    border:1px solid #ddd;
+    border-radius:10px;
+">
+    📅 Aujourd'hui
+    <h2 id="totalAujourdHui">0 FCFA</h2>
+</div> 
+        <h2 id="totalArgent">0 FCFA</h2>
+    </div>
+
+</div> 
+
+<div style="margin-bottom: 20px;">
+
+    <label for="filtreStatut">
+        🔎 Filtrer les commandes
+    </label>
+
+    <select
+        id="filtreStatut"
+        onchange="filtrerCommandes()"
+    >
+
+        <option value="toutes">
+            📦 Toutes les commandes
+        </option>
+
+        <option value="nouvelle">
+            🆕 Nouvelles
+        </option>
+
+        <option value="preparation">
+            👨‍🍳 En préparation
+        </option>
+
+        <option value="prete">
+            ✅ Prêtes
+        </option>
+
+        <option value="servie">
+            🍽️ Servies
+        </option>
+
+        <option value="annulee">
+            ❌ Annulées
+        </option>
+
+    </select>
+
+</div> 
+
+<div id="liste">
+    Chargement...
+</div>
+
+
+
+<script>
+
+let derniereCommandeId = null;
+let premiereVerification = true; 
+
+let toutesLesCommandes =[];
+
+function afficherNouvelleCommande() {
+
+    const notification =
+        document.getElementById("notification");
+
+
+    // Afficher l'alerte
+    notification.style.display =
+        "block";
+
+
+    // Faire vibrer le téléphone si possible
+    if (navigator.vibrate) {
+
+        navigator.vibrate([
+            300,
+            150,
+            300,
+            150,
+            500
+        ]);
+
+    }
+
+
+    // Son d'alerte
+    try {
+
+        const AudioContextClass =
+            window.AudioContext ||
+            window.webkitAudioContext;
+
+        const audioContext =
+            new AudioContextClass();
+
+
+        const oscillator =
+            audioContext.createOscillator();
+
+        const gain =
+            audioContext.createGain();
+
+
+        oscillator.connect(gain);
+
+        gain.connect(
+            audioContext.destination
+        );
+
+
+        oscillator.frequency.value =
+            850;
+
+        gain.gain.value =
+            0.3;
+
+
+        oscillator.start();
+
+
+        setTimeout(() => {
+
+            oscillator.stop();
+
+            audioContext.close();
+
+        }, 700);
+
+    } catch (error) {
+
+        console.log(
+            "Son non disponible :",
+            error
+        );
+
+    }
+
+
+    // Cacher après 10 secondes
+    setTimeout(() => {
+
+        notification.style.display =
+            "none";
+
+    }, 10000);
+
+}
+ 
+async function chargerCommandes() {
+
+    try {
+
+        const response =
+            await fetch("/patron/commandes/liste");
+
+
+        if (!response.ok) {
+
+            document.getElementById("liste").innerHTML =
+                "<p>❌ Impossible de charger les commandes.</p>";
+
+            return;
+
+        }
+
+
+        const commandes =
+            await response.json();
+
+
+        // ===============================
+        // RÉCUPÉRER LE FILTRE
+        // ===============================
+
+        const filtreElement =
+            document.getElementById("filtreStatut");
+
+
+        const filtre =
+            filtreElement
+                ? filtreElement.value
+                : "toutes";
+
+
+        // ===============================
+        // FILTRER LES COMMANDES
+        // ===============================
+
+        let commandesAffichees =
+            commandes;
+
+
+        if (filtre !== "toutes") {
+
+            commandesAffichees =
+                commandes.filter(c =>
+                    c.statut === filtre
+                );
+
+        }
+
+
+        // ===============================
+        // STATISTIQUES SELON LE FILTRE
+        // ===============================
+
+        const elementTotal =
+            document.getElementById(
+                "totalCommandes"
+            );
+
+        const elementNouvelles =
+            document.getElementById(
+                "nouvellesCommandes"
+            );
+
+        const elementPreparation =
+            document.getElementById(
+                "preparationCommandes"
+            );
+
+        const elementArgent =
+            document.getElementById(
+                "totalArgent"
+            );
+
+
+        if (elementTotal) {
+
+            elementTotal.textContent =
+                commandesAffichees.length;
+
+        }
+
+
+        if (elementNouvelles) {
+
+            elementNouvelles.textContent =
+                commandesAffichees.filter(
+                    c => c.statut === "nouvelle"
+                ).length;
+
+        }
+
+
+        if (elementPreparation) {
+
+            elementPreparation.textContent =
+                commandesAffichees.filter(
+                    c => c.statut === "preparation"
+                ).length;
+
+        }
+
+
+        if (elementArgent) {
+
+            let totalArgent = 0;
+
+
+            commandesAffichees.forEach(c => {
+
+                totalArgent +=
+                    Number(c.total) || 0;
+
+            });
+
+
+            elementArgent.textContent =
+                totalArgent + " FCFA";
+
+        }
+
+
+        // ===============================
+        // ZONE D'AFFICHAGE
+        // ===============================
+
+        const liste =
+            document.getElementById("liste");
+
+
+        if (!liste) {
+
+            console.error(
+                "Élément #liste introuvable"
+            );
+
+            return;
+
+        }
+
+
+        // ===============================
+        // AUCUNE COMMANDE
+        // ===============================
+
+        if (commandesAffichees.length === 0) {
+
+            liste.innerHTML =
+                "<p>📭 Aucune commande trouvée.</p>";
+
+            return;
+
+        }
+
+
+        // ===============================
+        // AFFICHER LES COMMANDES
+        // ===============================
+
+        liste.innerHTML =
+            commandesAffichees.map(c => `
+
+                <div class="commande">
+
+                    <h3>
+                        📦 Commande #${c.id}
+                    </h3>
+
+                    <p>
+                        🪑 Table ${c.numero_table}
+                    </p>
+
+
+                    ${
+                        c.produits &&
+                        c.produits.length > 0
+
+                        ? c.produits.map(p => `
+
+                            <p>
+                                🍽️ ${p.nom}
+                                × ${p.quantite}
+                                -
+                                ${p.prix} FCFA
+                            </p>
+
+                        `).join("")
+
+                        : `
+                            <p>
+                                ⚠️ Aucun produit enregistré.
+                            </p>
+                        `
+                    }
+
+
+                    <p>
+                        💰 ${c.total} FCFA
+                    </p>
+
+
+                    <p>
+                        📌 Statut :
+                        <strong>${c.statut}</strong>
+                    </p>
+
+
+                    <p>
+                        📅 ${c.created_at}
+                    </p>
+
+
+                    <select id="statut-${c.id}">
+
+                        <option
+                            value="nouvelle"
+                            ${c.statut === "nouvelle" ? "selected" : ""}
+                        >
+                            🆕 Nouvelle
+                        </option>
+
+                        <option
+                            value="preparation"
+                            ${c.statut === "preparation" ? "selected" : ""}
+                        >
+                            👨‍🍳 En préparation
+                        </option>
+
+                        <option
+                            value="prete"
+                            ${c.statut === "prete" ? "selected" : ""}
+                        >
+                            ✅ Prête
+                        </option>
+
+                        <option
+                            value="servie"
+                            ${c.statut === "servie" ? "selected" : ""}
+                        >
+                            🍽️ Servie
+                        </option>
+
+                        <option
+                            value="annulee"
+                            ${c.statut === "annulee" ? "selected" : ""}
+                        >
+                            ❌ Annulée
+                        </option>
+
+                    </select>
+
+
+                    <button
+                        onclick="modifierStatut(${c.id})"
+                    >
+                        💾 Modifier le statut
+                    </button>
+
+                </div>
+
+                <hr>
+
+            `).join("");
+
+
+    } catch (error) {
+
+        console.error(
+            "ERREUR EXACTE :",
+            error
+        );
+
+        document.getElementById("liste").innerHTML =
+            "<p>❌ Impossible de contacter le serveur.</p>";
+
+    }
+
+} 
+
+// ===============================
+// MODIFIER LE STATUT
+// ===============================
+
+async function modifierStatut(id) {
+
+    const select =
+        document.getElementById(`statut-${id}`);
+
+
+    if (!select) {
+
+        alert("❌ Impossible de trouver le statut.");
+
+        return;
+    }
+
+
+    const statut = select.value;
+
+
+    try {
+
+        const response =
+            await fetch(
+                `/patron/commandes/${id}/statut`,
+                {
+                    method: "PUT",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        statut: statut
+                    })
+                }
+            );
+
+
+        const resultat =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            alert(
+                "❌ " +
+                (
+                    resultat.error ||
+                    "Impossible de modifier le statut."
+                )
+            );
+
+            return;
+        }
+
+
+        alert(
+            "✅ Statut modifié avec succès !"
+        );
+
+
+        chargerCommandes();
+
+
+    } catch (error) {
+
+        console.error(
+            "Erreur modification statut :",
+            error
+        );
+
+        alert(
+            "❌ Impossible de contacter le serveur."
+        );
+
+    }
+
+} 
+
+
+// Charger immédiatement
+chargerCommandes();
+
+// Actualiser automatiquement toutes les 5 secondes
+setInterval(() => {
+    chargerCommandes();
+}, 5000); 
+
+</script>
+
+</body> 
+
+</html> 

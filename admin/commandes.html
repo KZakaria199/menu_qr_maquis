@@ -1,0 +1,360 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>Commandes</title>
+
+<style>
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f9;
+    margin: 0;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+}
+
+.retour {
+    display: inline-block;
+    margin-bottom: 20px;
+    padding: 12px 18px;
+    background: #222;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+}
+
+.container {
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 850px;
+}
+
+th {
+    background: #222;
+    color: white;
+    padding: 12px;
+}
+
+td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 7px;
+    background: #222;
+    color: white;
+    cursor: pointer;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    padding: 20px;
+}
+
+.modal-content {
+    background: white;
+    max-width: 500px;
+    margin: 50px auto;
+    padding: 20px;
+    border-radius: 12px;
+}
+
+.fermer {
+    float: right;
+    cursor: pointer;
+    font-size: 25px;
+}
+
+.produit {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<a
+href="/admin/dashboard"
+class="retour"
+>
+← Retour
+</a>
+
+<h1>📦 Toutes les commandes</h1>
+
+<div class="container">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Maquis</th>
+<th>Patron</th>
+<th>Table</th>
+<th>Total</th>
+<th>Statut</th>
+<th>Date</th>
+<th>Produits</th>
+
+</tr>
+
+</thead>
+
+<tbody id="listeCommandes">
+
+<tr>
+<td colspan="7">
+Chargement...
+</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+
+<div
+id="modal"
+class="modal"
+>
+
+<div class="modal-content">
+
+<span
+class="fermer"
+onclick="fermerModal()"
+>
+×
+</span>
+
+<h2>Produits commandés</h2>
+
+<div
+id="produitsCommande"
+>
+</div>
+
+</div>
+
+</div>
+
+
+<script>
+
+const liste =
+document.getElementById(
+    "listeCommandes"
+);
+
+
+async function chargerCommandes() {
+
+    try {
+
+        const response =
+        await fetch(
+            "/admin/commandes/liste"
+        );
+
+        const commandes =
+        await response.json();
+
+        liste.innerHTML = "";
+
+        if (!commandes.length) {
+
+            liste.innerHTML = `
+            <tr>
+            <td colspan="7">
+            Aucune commande.
+            </td>
+            </tr>
+            `;
+
+            return;
+        }
+
+        commandes.forEach(
+        commande => {
+
+            const date =
+            commande.created_at
+            ?
+            new Date(
+                commande.created_at
+            ).toLocaleString("fr-FR")
+            :
+            "-";
+
+            liste.innerHTML += `
+
+            <tr>
+
+            <td>
+            ${commande.nom_maquis || "-"}
+            </td>
+
+            <td>
+            ${commande.nom_patron || "-"}
+            </td>
+
+            <td>
+            Table ${commande.numero_table || "-"}
+            </td>
+
+            <td>
+            ${commande.total} FCFA
+            </td>
+
+            <td>
+            ${commande.statut}
+            </td>
+
+            <td>
+            ${date}
+            </td>
+
+            <td>
+
+            <button
+            onclick="voirProduits(
+                ${commande.id}
+            )"
+            >
+            Voir
+            </button>
+
+            </td>
+
+            </tr>
+
+            `;
+
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        liste.innerHTML = `
+        <tr>
+        <td colspan="7">
+        Erreur chargement.
+        </td>
+        </tr>
+        `;
+
+    }
+
+}
+
+
+async function voirProduits(
+commandeId
+) {
+
+    try {
+
+        const response =
+        await fetch(
+            "/admin/commandes/" +
+            commandeId +
+            "/produits"
+        );
+
+        const produits =
+        await response.json();
+
+        const zone =
+        document.getElementById(
+            "produitsCommande"
+        );
+
+        zone.innerHTML = "";
+
+        produits.forEach(
+        produit => {
+
+            zone.innerHTML += `
+
+            <div class="produit">
+
+            <strong>
+            ${produit.quantite} ×
+            ${produit.nom}
+            </strong>
+
+            <br>
+
+            ${produit.prix} FCFA
+
+            </div>
+
+            `;
+
+        });
+
+        document.getElementById(
+            "modal"
+        ).style.display =
+        "block";
+
+    } catch (error) {
+
+        alert(
+            "Impossible de charger les produits."
+        );
+
+    }
+
+}
+
+
+function fermerModal() {
+
+    document.getElementById(
+        "modal"
+    ).style.display =
+    "none";
+
+}
+
+
+chargerCommandes();
+
+</script>
+
+</body>
+
+</html> 

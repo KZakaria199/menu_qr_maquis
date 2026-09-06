@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Dashboard - Super Admin</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f6fa;
+            color: #222;
+        }
+
+        header {
+            background: #111;
+            color: white;
+            padding: 20px;
+        }
+
+        header h1 {
+            font-size: 22px;
+        }
+
+        header p {
+            margin-top: 5px;
+            color: #ccc;
+        }
+
+        .container {
+            width: 94%;
+            max-width: 1200px;
+            margin: 25px auto;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+        }
+
+        .card {
+            background: white;
+            padding: 22px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.06);
+        }
+
+        .card .icon {
+            font-size: 30px;
+        }
+
+        .card h3 {
+            margin-top: 12px;
+            color: #777;
+            font-size: 15px;
+        }
+
+        .card .number {
+            font-size: 30px;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+
+        .menu {
+            margin-top: 25px;
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .menu h2 {
+            margin-bottom: 20px;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .button {
+            display: block;
+            padding: 18px;
+            background: #f1f1f1;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #222;
+            font-weight: bold;
+        }
+
+        .button:hover {
+            background: #e5e5e5;
+        }
+
+        @media (max-width: 800px) {
+            .cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 500px) {
+            .cards {
+                grid-template-columns: 1fr;
+            }
+
+            .buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>👑 Super Admin</h1>
+    <p>Gestion de votre plateforme de menus QR</p>
+</header>
+
+<div class="container">
+
+    <div class="cards">
+
+        <div class="card">
+            <div class="icon">🏪</div>
+            <h3>MAQUIS</h3>
+            <div class="number">0</div>
+        </div>
+
+        <div class="card">
+            <div class="icon">👤</div>
+            <h3>PATRONS</h3>
+            <div class="number">0</div>
+        </div>
+
+        <div class="card">
+            <div class="icon">🛒</div>
+            <h3>COMMANDES</h3>
+            <div class="number">0</div>
+        </div>
+
+        <div class="card">
+            <div class="icon">💳</div>
+            <h3>ABONNEMENTS ACTIFS</h3>
+            <div class="number">0</div>
+        </div>
+
+    </div>
+
+    <div class="menu">
+
+        <h2>Gestion de la plateforme</h2>
+
+        <div class="buttons">
+
+            <a href="/admin/maquis" class="button">
+                🏪 Gérer les maquis
+            </a>
+
+            <a href="/admin/patrons" class="button">
+                👤 Gérer les patrons
+            </a>
+
+            <a href="/admin/menus" class="button">
+                🍽️ Gérer les menus
+            </a>
+
+            <a href="/admin/qrcodes" class="button">
+                📱 Gérer les QR Codes
+            </a>
+
+            <a href="/admin/abonnements" class="button">
+                💳 Gérer les abonnements
+            </a>
+
+            <a href="/admin/commandes" class="button">
+                🛒 Voir les commandes
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+<button
+    id="installerApp"
+    onclick="installerApplication()"
+    style="
+        display:none;
+        padding:12px 18px;
+        border:none;
+        border-radius:8px;
+        background:#222;
+        color:white;
+        cursor:pointer;
+    "
+>
+    📲 Installer l'application Admin
+</button>
+
+<script
+    src="/admin-app/install.js"
+></script> 
+</body>
+</html> 

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catégories</title>
+</head>
+
+<body>
+
+<h1>📂 Catégories</h1>
+
+<input id="nom" placeholder="Nom de la catégorie">
+<button onclick="ajouterCategorie()">➕ Ajouter</button>
+
+<h2>Mes catégories</h2>
+
+<div id="liste">Chargement...</div>
+
+<script>
+
+async function chargerCategories() {
+
+    const response = await fetch("/patron/categories/liste");
+    const categories = await response.json();
+
+    document.getElementById("liste").innerHTML =
+        categories.map(c => `
+            <p>
+                📂 ${c.nom}
+            </p>
+        `).join("");
+}
+
+async function ajouterCategorie() {
+
+    const nom = document.getElementById("nom").value;
+
+    if (!nom) {
+        alert("Entrez un nom.");
+        return;
+    }
+
+    const response = await fetch("/patron/categories", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ nom })
+    });
+
+    const resultat = await response.json();
+
+    if (!response.ok) {
+        alert("❌ " + resultat.error);
+        return;
+    }
+
+    document.getElementById("nom").value = "";
+
+    chargerCategories();
+}
+
+chargerCategories();
+
+</script>
+
+</body>
+</html> 

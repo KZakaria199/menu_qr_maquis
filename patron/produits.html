@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Mes produits</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f6fa;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 700px;
+    margin: auto;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+}
+
+input, select, textarea, button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 8px;
+    margin-bottom: 15px;
+    box-sizing: border-box;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+button {
+    background: #111;
+    color: white;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.produit {
+    background: #f5f6fa;
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 12px;
+}
+
+.produit img {
+    width: 100%;
+    max-width: 250px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.prix {
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.btn-rouge {
+    background: #c00;
+}
+
+.btn-vert {
+    background: #087f23;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🍽️ Mes produits</h1>
+
+<a href="/patron/dashboard">← Retour au dashboard</a>
+
+<div class="card">
+
+<h2>➕ Ajouter un produit</h2>
+
+<label>Nom du produit</label>
+
+<input
+    type="text"
+    id="nom"
+    placeholder="Ex : Poulet braisé"
+>
+
+<label>Catégorie</label>
+
+<select id="categorie">
+    <option value="">Chargement...</option>
+</select>
+
+<label>Photo du produit</label>
+
+<input
+    type="file"
+    id="photo"
+    accept="image/*"
+>
+
+<label>Prix (FCFA)</label>
+
+<input
+    type="number"
+    id="prix"
+    placeholder="Ex : 2500"
+>
+
+<label>Description</label>
+
+<textarea
+    id="description"
+    placeholder="Description du produit"
+></textarea>
+
+<button onclick="ajouterProduit()">
+    ➕ AJOUTER LE PRODUIT
+</button>
+
+</div>
+
+
+<div class="card">
+
+<h2>📋 Mes produits</h2>
+
+<div id="liste">
+    Chargement...
+</div>
+
+</div>
+
+</div>
+
+
+<script>
+
+// ===============================
+// CHARGER LES CATÉGORIES
+// ===============================
+
+async function chargerCategories() {
+
+    try {
+
+        const response =
+            await fetch("/patron/categories/liste");
+
+        if (!response.ok) {
+            throw new Error("Impossible de charger les catégories");
+        }
+
+        const categories =
+            await response.json();
+
+        const select =
+            document.getElementById("categorie");
+
+        if (categories.length === 0) {
+
+            select.innerHTML =
+                '<option value="">Aucune catégorie</option>';
+
+            return;
+        }
+
+        select.innerHTML =
+            '<option value="">Choisir une catégorie</option>';
+
+        categories.forEach(categorie => {
+
+            select.innerHTML += `
+                <option value="${categorie.id}">
+                    ${categorie.nom}
+                </option>
+            `;
+
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        document.getElementById("categorie").innerHTML =
+            '<option value="">Erreur catégories</option>';
+    }
+}
+
+
+// ===============================
+// AJOUTER UN PRODUIT
+// ===============================
+
+async function ajouterProduit() {
+
+    const nom =
+        document.getElementById("nom").value.trim();
+
+    const categorie_id =
+        document.getElementById("categorie").value;
+
+    const prix =
+        document.getElementById("prix").value;
+
+    const description =
+        document.getElementById("description").value.trim();
+
+    const photoInput =
+        document.getElementById("photo");
+
+    const photo =
+        photoInput.files[0];
+
+
+    if (!nom || !categorie_id || !prix) {
+
+        alert(
+            "❌ Remplis le nom, la catégorie et le prix."
+        );
+
+        return;
+    }
+
+
+    const formData =
+        new FormData();
+
+    formData.append("nom", nom);
+    formData.append("categorie_id", categorie_id);
+    formData.append("prix", prix);
+    formData.append("description", description);
+
+    if (photo) {
+        formData.append("photo", photo);
+    }
+
+
+    try {
+
+        const response =
+            await fetch("/patron/produits", {
+
+                method: "POST",
+
+                body: formData
+            });
+
+
+        const resultat =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            alert(
+                "❌ " +
+                (resultat.error || "Erreur")
+            );
+
+            return;
+        }
+
+
+        alert("✅ Produit ajouté !");
+
+
+        document.getElementById("nom").value = "";
+
+        document.getElementById("prix").value = "";
+
+        document.getElementById("description").value = "";
+
+        document.getElementById("photo").value = "";
+
+        document.getElementById("categorie").value = "";
+
+
+        chargerProduits();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("❌ Impossible de contacter le serveur.");
+    }
+}
+
+
+// ===============================
+// CHARGER LES PRODUITS
+// ===============================
+
+async function chargerProduits() {
+
+    try {
+
+        const response =
+            await fetch("/patron/produits/liste");
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Impossible de charger les produits"
+            );
+        }
+
+
+        const produits =
+            await response.json();
+
+
+        const liste =
+            document.getElementById("liste");
+
+
+        if (produits.length === 0) {
+
+            liste.innerHTML =
+                "<p>Aucun produit pour le moment.</p>";
+
+            return;
+        }
+
+
+        liste.innerHTML =
+            produits.map(produit => `
+
+                <div class="produit">
+
+                    ${
+                        produit.photo
+                        ? `
+                            <img
+                                src="${produit.photo}"
+                                alt="${produit.nom}"
+                            >
+                        `
+                        : ""
+                    }
+
+
+                    <h3>
+                        🍽️ ${produit.nom}
+                    </h3>
+
+
+                    <p>
+                        ${produit.description || ""}
+                    </p>
+
+
+                    <p class="prix">
+                        💰 ${produit.prix} FCFA
+                    </p>
+
+
+                    <p>
+                        ${
+                            produit.disponible
+                            ? "🟢 Disponible"
+                            : "🔴 Indisponible"
+                        }
+                    </p>
+
+
+                    <button
+                        onclick="modifierProduit(${produit.id})"
+                    >
+                        ✏️ Modifier
+                    </button>
+
+
+                    <button
+                        onclick="changerDisponibilite(${produit.id})"
+                        class="${
+                            produit.disponible
+                            ? "btn-rouge"
+                            : "btn-vert"
+                        }"
+                    >
+                        ${
+                            produit.disponible
+                            ? "🔴 Rendre indisponible"
+                            : "🟢 Rendre disponible"
+                        }
+                    </button>
+
+
+                    <button
+                        onclick="supprimerProduit(${produit.id})"
+                        class="btn-rouge"
+                    >
+                        🗑️ Supprimer
+                    </button>
+
+                </div>
+
+            `).join("");
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        document.getElementById("liste").innerHTML =
+            "<p>❌ Impossible de charger les produits.</p>";
+    }
+}
+
+
+// ===============================
+// SUPPRIMER UN PRODUIT
+// ===============================
+
+async function supprimerProduit(id) {
+
+    if (!confirm(
+        "Voulez-vous vraiment supprimer ce produit ?"
+    )) {
+        return;
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                `/patron/produits/${id}`,
+                {
+                    method: "DELETE"
+                }
+            );
+
+
+        const resultat =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            alert(
+                "❌ " +
+                (resultat.error || "Erreur")
+            );
+
+            return;
+        }
+
+
+        alert("✅ Produit supprimé !");
+
+        chargerProduits();
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("❌ Impossible de contacter le serveur.");
+    }
+}
+
+
+// ===============================
+// DISPONIBILITÉ
+// ===============================
+
+async function changerDisponibilite(id) {
+
+    try {
+
+        const response =
+            await fetch(
+                `/patron/produits/${id}/disponibilite`,
+                {
+                    method: "PUT"
+                }
+            );
+
+
+        const resultat =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            alert(
+                "❌ " +
+                (resultat.error || "Erreur")
+            );
+
+            return;
+        }
+
+
+        chargerProduits();
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("❌ Impossible de contacter le serveur.");
+    }
+}
+
+
+// ===============================
+// MODIFIER UN PRODUIT
+// ===============================
+
+async function modifierProduit(id) {
+
+    const nom =
+        prompt("Nouveau nom du produit :");
+
+
+    if (!nom) {
+        return;
+    }
+
+
+    const prix =
+        prompt("Nouveau prix (FCFA) :");
+
+
+    if (!prix) {
+        return;
+    }
+
+
+    const description =
+        prompt("Nouvelle description :") || "";
+
+
+    // Récupérer les catégories
+    const responseCategories =
+        await fetch("/patron/categories/liste");
+
+
+    if (!responseCategories.ok) {
+
+        alert("❌ Impossible de charger les catégories.");
+
+        return;
+    }
+
+
+    const categories =
+        await responseCategories.json();
+
+
+    if (categories.length === 0) {
+
+        alert("❌ Aucune catégorie disponible.");
+
+        return;
+    }
+
+
+    let texte =
+        "Choisis la catégorie avec son numéro :\n\n";
+
+
+    categories.forEach((categorie, index) => {
+
+        texte +=
+            `${index + 1}. ${categorie.nom}\n`;
+
+    });
+
+
+    const choix =
+        prompt(texte);
+
+
+    const index =
+        parseInt(choix) - 1;
+
+
+    if (
+        isNaN(index) ||
+        !categories[index]
+    ) {
+
+        alert("❌ Catégorie invalide.");
+
+        return;
+    }
+
+
+    const categorie_id =
+        categories[index].id;
+
+
+    // Nouvelle photo ?
+    const changerPhoto =
+        confirm(
+            "Voulez-vous changer la photo du produit ?"
+        );
+
+
+    let photo = null;
+
+
+    if (changerPhoto) {
+
+        const input =
+            document.createElement("input");
+
+        input.type = "file";
+
+        input.accept = "image/*";
+
+
+        document.body.appendChild(input);
+
+
+        input.click();
+
+
+        await new Promise(resolve => {
+
+            input.onchange = resolve;
+
+        });
+
+
+        photo =
+            input.files[0];
+
+
+        input.remove();
+
+
+        if (!photo) {
+
+            alert("❌ Aucune photo sélectionnée.");
+
+            return;
+        }
+    }
+
+
+    const formData =
+        new FormData();
+
+
+    formData.append("nom", nom);
+
+    formData.append(
+        "categorie_id",
+        categorie_id
+    );
+
+    formData.append("prix", prix);
+
+    formData.append(
+        "description",
+        description
+    );
+
+
+    if (photo) {
+
+        formData.append(
+            "photo",
+            photo
+        );
+
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                `/patron/produits/${id}`,
+                {
+                    method: "PUT",
+                    body: formData
+                }
+            );
+
+
+        const resultat =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            alert(
+                "❌ " +
+                (
+                    resultat.error ||
+                    "Erreur lors de la modification."
+                )
+            );
+
+            return;
+        }
+
+
+        alert("✅ Produit modifié !");
+
+        chargerProduits();
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            "❌ Impossible de contacter le serveur."
+        );
+    }
+}
+
+
+// ===============================
+// DÉMARRAGE
+// ===============================
+
+chargerCategories();
+
+chargerProduits();
+
+</script>
+
+</body>
+</html> 

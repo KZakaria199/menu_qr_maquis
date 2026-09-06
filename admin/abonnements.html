@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>Gestion des Abonnements</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+
+    font-family: Arial, sans-serif;
+
+    background: #f4f6f9;
+
+    margin: 0;
+
+    padding: 20px;
+
+}
+
+.header {
+
+    display: flex;
+
+    justify-content:
+        space-between;
+
+    align-items:
+        center;
+
+    margin-bottom:
+        25px;
+
+}
+
+.retour {
+
+    background: #222;
+
+    color: white;
+
+    padding:
+        12px 18px;
+
+    border-radius:
+        8px;
+
+    text-decoration:
+        none;
+
+}
+
+.container {
+
+    background: white;
+
+    padding: 20px;
+
+    border-radius: 12px;
+
+    overflow-x:
+        auto;
+
+    box-shadow:
+        0 3px 10px
+        rgba(0,0,0,0.1);
+
+}
+
+table {
+
+    width: 100%;
+
+    border-collapse:
+        collapse;
+
+    min-width:
+        850px;
+
+}
+
+th {
+
+    background:
+        #222;
+
+    color:
+        white;
+
+    padding:
+        12px;
+
+    text-align:
+        left;
+
+}
+
+td {
+
+    padding:
+        12px;
+
+    border-bottom:
+        1px solid #ddd;
+
+}
+
+.actif {
+
+    color:
+        green;
+
+    font-weight:
+        bold;
+
+}
+
+.expire {
+
+    color:
+        red;
+
+    font-weight:
+        bold;
+
+}
+
+button {
+
+    border:
+        none;
+
+    border-radius:
+        7px;
+
+    padding:
+        9px 12px;
+
+    cursor:
+        pointer;
+
+    margin:
+        3px;
+
+    background:
+        #222;
+
+    color:
+        white;
+
+}
+
+.btn30 {
+
+    background:
+        #1976d2;
+
+}
+
+.btn90 {
+
+    background:
+        #f57c00;
+
+}
+
+.btn365 {
+
+    background:
+        #2e7d32;
+
+}
+
+.vide {
+
+    text-align:
+        center;
+
+    padding:
+        30px;
+
+    color:
+        #777;
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="header">
+
+    <h1>
+        💳 Gestion des abonnements
+    </h1>
+
+
+    <a
+        href="/admin/dashboard"
+        class="retour"
+    >
+        ← Retour
+    </a>
+
+</div>
+
+
+
+<div class="container">
+
+
+<table>
+
+
+<thead>
+
+<tr>
+
+<th>Maquis</th>
+
+<th>Patron</th>
+
+<th>Téléphone</th>
+
+<th>Expiration</th>
+
+<th>Statut</th>
+
+<th>Activer</th>
+
+</tr>
+
+</thead>
+
+
+
+<tbody
+    id="listeAbonnements"
+>
+
+<tr>
+
+<td
+    colspan="6"
+    class="vide"
+>
+
+Chargement...
+
+</td>
+
+</tr>
+
+</tbody>
+
+
+</table>
+
+
+</div>
+
+
+
+<script>
+
+
+const liste =
+    document.getElementById(
+        "listeAbonnements"
+    );
+
+
+
+// ===============================
+// CHARGER LES ABONNEMENTS
+// ===============================
+
+async function chargerAbonnements() {
+
+    try {
+
+        const response =
+            await fetch(
+                "/admin/abonnements/liste"
+            );
+
+
+        const maquis =
+            await response.json();
+
+
+        liste.innerHTML =
+            "";
+
+
+        if (
+            !maquis.length
+        ) {
+
+            liste.innerHTML = `
+
+            <tr>
+
+            <td
+                colspan="6"
+                class="vide"
+            >
+
+            Aucun maquis trouvé.
+
+            </td>
+
+            </tr>
+
+            `;
+
+            return;
+
+        }
+
+
+        maquis.forEach(
+            item => {
+
+
+                let expiration =
+                    "Aucun abonnement";
+
+
+                let statut =
+                    `<span class="expire">
+                    Expiré
+                    </span>`;
+
+
+                if (
+                    item.abonnement_fin
+                ) {
+
+                    const dateFin =
+                        new Date(
+                            item.abonnement_fin
+                        );
+
+
+                    const maintenant =
+                        new Date();
+
+
+                    expiration =
+                        dateFin.toLocaleDateString(
+                            "fr-FR"
+                        );
+
+
+                    if (
+                        dateFin > maintenant
+                    ) {
+
+                        statut =
+                            `<span class="actif">
+                            Actif
+                            </span>`;
+
+                    }
+
+                }
+
+
+                liste.innerHTML += `
+
+                <tr>
+
+                <td>
+                    ${item.nom}
+                </td>
+
+
+                <td>
+                    ${item.nom_patron || "-"}
+                </td>
+
+
+                <td>
+                    ${item.telephone || "-"}
+                </td>
+
+
+                <td>
+                    ${expiration}
+                </td>
+
+
+                <td>
+                    ${statut}
+                </td>
+
+
+                <td>
+
+                <button
+                    class="btn30"
+                    onclick="
+                    activerAbonnement(
+                        ${item.id},
+                        30
+                    )
+                    "
+                >
+                    30 jours
+                </button>
+
+
+                <button
+                    class="btn90"
+                    onclick="
+                    activerAbonnement(
+                        ${item.id},
+                        90
+                    )
+                    "
+                >
+                    90 jours
+                </button>
+
+
+                <button
+                    class="btn365"
+                    onclick="
+                    activerAbonnement(
+                        ${item.id},
+                        365
+                    )
+                    "
+                >
+                    1 an
+                </button>
+
+
+                </td>
+
+                </tr>
+
+                `;
+
+            }
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            error
+        );
+
+
+        liste.innerHTML = `
+
+        <tr>
+
+        <td
+            colspan="6"
+            class="vide"
+        >
+
+        Erreur lors du chargement.
+
+        </td>
+
+        </tr>
+
+        `;
+
+    }
+
+}
+
+
+
+// ===============================
+// ACTIVER ABONNEMENT
+// ===============================
+
+async function activerAbonnement(
+    maquisId,
+    jours
+) {
+
+    const confirmation =
+        confirm(
+            "Activer " +
+            jours +
+            " jours d'abonnement ?"
+        );
+
+
+    if (!confirmation) {
+
+        return;
+
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/admin/maquis/" +
+                maquisId +
+                "/abonnement",
+                {
+
+                    method:
+                        "POST",
+
+                    headers: {
+
+                        "Content-Type":
+                            "application/json"
+
+                    },
+
+                    body:
+                        JSON.stringify({
+
+                            jours:
+                                jours
+
+                        })
+
+                }
+            );
+
+
+        const resultat =
+            await response.json();
+
+
+        if (
+            !response.ok
+        ) {
+
+            alert(
+                resultat.error ||
+                "Erreur"
+            );
+
+            return;
+
+        }
+
+
+        alert(
+            "Abonnement activé avec succès."
+        );
+
+
+        chargerAbonnements();
+
+
+    } catch (error) {
+
+        console.error(
+            error
+        );
+
+
+        alert(
+            "Erreur de connexion."
+        );
+
+    }
+
+}
+
+
+
+// DÉMARRAGE
+
+chargerAbonnements();
+
+
+</script>
+
+
+</body>
+
+</html> 

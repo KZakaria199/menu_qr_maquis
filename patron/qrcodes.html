@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>Gérer les QR Codes</title>
+
+<style>
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f6fa;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 700px;
+    margin: auto;
+}
+
+h1 {
+    text-align: center;
+}
+
+.table-card {
+    background: white;
+    padding: 20px;
+    margin-bottom: 15px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.table-card h2 {
+    margin-top: 0;
+}
+
+.qr-image {
+    width: 220px;
+    max-width: 100%;
+    margin: 15px auto;
+}
+
+button {
+    padding: 12px 18px;
+    border: none;
+    border-radius: 8px;
+    background: #111;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.retour {
+    display: inline-block;
+    margin-bottom: 20px;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+<a
+    class="retour"
+    href="/patron/dashboard"
+>
+    ← Retour au dashboard
+</a>
+
+<button onclick="genererTousLesQRCodes()">
+    ⚡ Générer tous les QR Codes
+</button>
+
+<br><br> 
+
+<h1>📱 QR Codes des tables</h1>
+
+
+<div id="liste">
+
+    Chargement des tables...
+
+</div>
+
+
+</div>
+
+
+<script>
+async function genererTousLesQRCodes() {
+
+    const response =
+        await fetch("/patron/tables/liste");
+
+
+    if (!response.ok) {
+
+        alert(
+            "❌ Impossible de charger les tables."
+        );
+
+        return;
+
+    }
+
+
+    const tables =
+        await response.json();
+
+
+    if (tables.length === 0) {
+
+        alert(
+            "📭 Aucune table enregistrée."
+        );
+
+        return;
+
+    }
+
+
+    for (const table of tables) {
+
+        await genererQRCode(
+            table.id,
+            table.numero
+        );
+
+    }
+
+
+    alert(
+        "✅ Tous les QR Codes ont été générés !"
+    );
+
+} 
+
+async function chargerQRCodes() {
+
+    try {
+
+        const response =
+            await fetch(
+                "/patron/tables/liste"
+            );
+
+
+        if (!response.ok) {
+
+            document.getElementById(
+                "liste"
+            ).innerHTML =
+                "<p>❌ Impossible de charger les tables.</p>";
+
+            return;
+
+        }
+
+
+        const tables =
+            await response.json();
+
+
+        const liste =
+            document.getElementById(
+                "liste"
+            );
+
+
+        if (tables.length === 0) {
+
+            liste.innerHTML = `
+                <p>
+                    📭 Aucune table enregistrée.
+                </p>
+            `;
+
+            return;
+
+        }
+
+
+        liste.innerHTML =
+            tables.map(table => `
+
+                <div class="table-card">
+
+                    <h2>
+                        🪑 Table ${table.numero}
+                    </h2>
+
+
+                    <p>
+                        Générer le QR Code de cette table.
+                    </p>
+
+
+                    <button
+                        onclick="genererQRCode(
+                            ${table.id},
+                            '${table.numero}'
+                        )"
+                    >
+                        📱 Générer le QR Code
+                    </button>
+
+
+                    <div
+                        id="qr-${table.id}"
+                    ></div>
+
+                </div>
+
+            `).join("");
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        document.getElementById(
+            "liste"
+        ).innerHTML =
+            "<p>❌ Impossible de contacter le serveur.</p>";
+
+    }
+
+}
+
+
+async function genererQRCode(
+    tableId,
+    numeroTable
+) {
+
+    const zone =
+        document.getElementById(
+            `qr-${tableId}`
+        );
+
+
+    zone.innerHTML =
+        "⏳ Génération du QR Code...";
+
+
+    try {
+
+        const response =
+            await fetch(
+                `/patron/qrcodes/${tableId}`
+            );
+
+
+        const resultat =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            zone.innerHTML =
+                "❌ Impossible de générer le QR Code.";
+
+            return;
+
+        }
+
+
+        zone.innerHTML = `
+
+            <img
+                class="qr-image"
+                src="${resultat.qrcode}"
+                alt="QR Code Table ${numeroTable}"
+            >
+
+            <br>
+
+            <a
+                href="${resultat.qrcode}"
+                download="QR-Table-${numeroTable}.png"
+            >
+                📥 Télécharger le QR Code
+            </a>
+
+        `;
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        zone.innerHTML =
+            "❌ Erreur de connexion.";
+
+    }
+
+}
+
+
+chargerQRCodes();
+
+</script>
+
+
+</body>
+
+</html> 

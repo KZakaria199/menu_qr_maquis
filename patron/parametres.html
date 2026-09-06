@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>Paramètres du Maquis</title>
+
+<style>
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f6fa;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 600px;
+    margin: auto;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+}
+
+input,
+textarea,
+button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 8px;
+    margin-bottom: 15px;
+    box-sizing: border-box;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+button {
+    background: #111;
+    color: white;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+<a href="/patron/dashboard">
+    ← Retour au dashboard
+</a>
+
+
+<h1>⚙️ Paramètres du Maquis</h1>
+
+
+<div class="card">
+
+    <label>🏪 Nom du maquis</label>
+
+    <input
+        type="text"
+        id="nom"
+        placeholder="Nom du maquis"
+    >
+
+
+    <label>📞 Téléphone / WhatsApp</label>
+
+    <input
+        type="tel"
+        id="telephone"
+        placeholder="Ex : 70 00 00 00"
+    >
+
+
+    <label>📍 Adresse</label>
+
+    <input
+        type="text"
+        id="adresse"
+        placeholder="Ex : Ouagadougou"
+    >
+
+
+    <label>🕐 Horaires</label>
+
+    <input
+        type="text"
+        id="horaires"
+        placeholder="Ex : 10h - 00h"
+    >
+<label>🖼️ Logo du maquis</label>
+
+<div id="zoneLogo">
+
+    <p>Aucun logo</p>
+
+</div>
+
+<input
+    type="file"
+    id="logo"
+    accept="image/*"
+> 
+<img
+    id="apercuLogo"
+    style="
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 50%;
+        display: none;
+        margin-bottom: 15px;
+    "
+> 
+
+    <button onclick="enregistrerParametres()">
+
+        💾 ENREGISTRER LES MODIFICATIONS
+
+    </button>
+
+</div>
+
+</div>
+
+
+<script>
+
+// ===============================
+// CHARGER LES INFORMATIONS
+// ===============================
+async function chargerParametres() {
+
+    try {
+
+        const response =
+            await fetch("/patron/maquis");
+
+        const maquis =
+            await response.json();
+
+        if (!response.ok) {
+
+            alert(
+                "❌ " +
+                (maquis.error ||
+                "Impossible de charger les informations.")
+            );
+
+            return;
+
+        }
+const champNom =
+    document.getElementById("nom");
+
+const champTelephone =
+    document.getElementById("telephone");
+
+const champAdresse =
+    document.getElementById("adresse");
+
+const champHoraires =
+    document.getElementById("horaires");
+
+
+if (champNom) {
+    champNom.value = maquis.nom || "";
+}
+
+if (champTelephone) {
+    champTelephone.value =
+        maquis.telephone || "";
+}
+
+if (champAdresse) {
+    champAdresse.value =
+        maquis.adresse || "";
+}
+
+if (champHoraires) {
+    champHoraires.value =
+        maquis.horaires || "";
+} 
+
+
+        // ===============================
+        // AFFICHER LE LOGO ACTUEL
+        // ===============================
+
+        const zoneLogo =
+            document.getElementById("zoneLogo");
+
+        if (zoneLogo) {
+
+            if (maquis.logo) {
+
+                zoneLogo.innerHTML = `
+                    <img
+                        src="${maquis.logo}"
+                        alt="Logo du maquis"
+                        style="
+                            width:120px;
+                            height:120px;
+                            object-fit:cover;
+                            border-radius:50%;
+                        "
+                    >
+                `;
+
+            } else {
+
+                zoneLogo.innerHTML =
+                    "<p>Aucun logo enregistré.</p>";
+
+            }
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "ERREUR EXACTE PARAMÈTRES :",
+            error
+        );
+
+        alert(
+            "❌ Erreur : " +
+            error.message
+        );
+
+    }
+
+} 
+
+
+// ===============================
+// ENREGISTRER LES MODIFICATIONS
+// ===============================
+async function enregistrerParametres() {
+
+    const nom =
+        document.getElementById("nom").value.trim();
+
+    const telephone =
+        document.getElementById("telephone").value.trim();
+
+    const adresse =
+        document.getElementById("adresse").value.trim();
+
+    const horaires =
+        document.getElementById("horaires").value.trim();
+
+    const logo =
+        document.getElementById("logo").files[0];
+
+
+    if (!nom) {
+
+        alert(
+            "❌ Le nom du maquis est obligatoire."
+        );
+
+        return;
+
+    }
+
+
+    const formData =
+        new FormData();
+
+
+    formData.append("nom", nom);
+
+    formData.append(
+        "telephone",
+        telephone
+    );
+
+    formData.append(
+        "adresse",
+        adresse
+    );
+
+    formData.append(
+        "horaires",
+        horaires
+    );
+
+
+    if (logo) {
+
+        formData.append(
+            "logo",
+            logo
+        );
+
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/patron/maquis",
+                {
+
+                    method: "PUT",
+
+                    body: formData
+
+                }
+            );
+
+
+        const resultat =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            alert(
+                "❌ " +
+                (
+                    resultat.error ||
+                    "Impossible d'enregistrer."
+                )
+            );
+
+            return;
+
+        }
+
+
+        alert(
+            "✅ Informations et logo enregistrés !"
+        );
+
+
+        // Actualiser les informations
+        chargerParametres();
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            "❌ Impossible de contacter le serveur."
+        );
+
+    }
+
+} 
+// ===============================
+// APERÇU DU NOUVEAU LOGO
+// ===============================
+
+document
+    .getElementById("logo")
+    .addEventListener(
+        "change",
+        function() {
+
+            const fichier =
+                this.files[0];
+
+            if (!fichier) {
+                return;
+            }
+
+            const apercu =
+                document.getElementById(
+                    "apercuLogo"
+                );
+
+            apercu.src =
+                URL.createObjectURL(
+                    fichier
+                );
+
+            apercu.style.display =
+                "block";
+
+        }
+    ); 
+
+
+
+chargerParametres();
+
+</script>
+
+</body>
+
+</html> 

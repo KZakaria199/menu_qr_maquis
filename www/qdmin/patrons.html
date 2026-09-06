@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Gestion des patrons</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f6fa;
+            color: #222;
+        }
+
+        header {
+            background: #111;
+            color: white;
+            padding: 20px;
+        }
+
+        header h1 {
+            font-size: 22px;
+        }
+
+        .container {
+            width: 94%;
+            max-width: 800px;
+            margin: 25px auto;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: bold;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            background: #111;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .retour {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #111;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>👑 Gestion des patrons</h1>
+    </header>
+
+    <div class="container">
+
+        <a href="/admin/dashboard" class="retour">
+            ← Retour au dashboard
+        </a>
+
+        <div class="card">
+
+            <h2>➕ Ajouter un patron</h2>
+
+            <form id="patronForm" method="POST" action="/admin/patrons"> 
+
+                <div class="form-group">
+                    <label for="nomPatron">
+                        Nom du patron
+                    </label>
+
+                    <input
+                        type="text"
+                        id="nomPatron"
+                        name="nomPatron"
+                        placeholder="Ex : Zakaria Kabré"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="nomMaquis">
+                        Nom du maquis
+                    </label>
+
+                    <input
+                        type="text"
+                        id="nomMaquis"
+                        name="nomMaquis"
+                        placeholder="Ex : Maquis La Grâce"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="telephone">
+                        Téléphone / WhatsApp
+                    </label>
+
+                    <input
+                        type="tel"
+                        id="telephone"
+                        name="telephone"
+                        placeholder="Ex : 70 00 00 00"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="email">
+                        Email
+                    </label>
+
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="Ex : patron@email.com"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="motDePasse">
+                        Mot de passe
+                    </label>
+
+                    <input
+                        type="password"
+                        id="motDePasse"
+                        name="motDePasse"
+                        placeholder="Mot de passe du patron"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="adresse">
+                        Adresse du maquis
+                    </label>
+
+                    <input
+                        type="text"
+                        id="adresse"
+                        name="adresse"
+                        placeholder="Ex : Ouagadougou, quartier..."
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="horaires">
+                        Horaires
+                    </label>
+
+                    <textarea
+                        id="horaires"
+                        name="horaires"
+                        placeholder="Ex : Lundi - Dimanche : 10h00 - 23h00"
+                    ></textarea>
+                </div>
+
+                <button type="submit">
+                    ➕ CRÉER LE PATRON
+                </button>
+
+            </form>
+            <hr style="margin: 35px 0;">
+
+<h2>👥 Patrons enregistrés</h2>
+
+<div id="listePatrons">
+    Chargement des patrons...
+</div>
+
+<script>
+async function chargerPatrons() {
+    try {
+        const response = await fetch("/admin/patrons/liste");
+
+        if (!response.ok) {
+            throw new Error("Erreur lors du chargement");
+        }
+
+        const patrons = await response.json();
+
+        const liste = document.getElementById("listePatrons");
+
+        if (patrons.length === 0) {
+            liste.innerHTML = "<p>Aucun patron enregistré pour le moment.</p>";
+            return;
+        }
+
+        liste.innerHTML = patrons.map(patron => `
+            <div style="
+                background:#f5f6fa;
+                padding:18px;
+                margin-top:15px;
+                border-radius:12px;
+            ">
+                <h3>👤 ${patron.nom}</h3>
+                <p>🏪 ${patron.nom_maquis || "Aucun maquis"}</p>
+                <p>📱 ${patron.telephone || "Non renseigné"}</p>
+                <p>📧 ${patron.email}</p>
+                <p>
+                    ${patron.actif
+                        ? "🟢 Maquis actif"
+                        : "🔴 Maquis désactivé"}
+                </p>
+             <button
+    onclick="modifierPatron(${patron.id})"
+    style="
+        width:auto;
+        padding:10px 15px;
+        margin-top:10px;
+        background:#222;
+    "
+>
+    ✏️ Modifier
+</button> 
+  <button
+    onclick="changerStatut(${patron.id})"
+    style="
+        width:auto;
+        padding:10px 15px;
+        margin-top:10px;
+    "
+>
+    ${patron.actif ? "⏸️ Suspendre" : "▶️ Réactiver"}
+</button>
+
+<div style="
+    margin-top:15px;
+    padding:12px;
+    background:white;
+    border-radius:10px;
+">
+    <strong>💳 Gestion abonnement</strong>
+
+    <div style="
+        display:flex;
+        flex-wrap:wrap;
+        gap:8px;
+        margin-top:10px;
+    ">
+
+        <button
+            onclick="ajouterAbonnement(${patron.id}, 30)"
+            style="
+                width:auto;
+                padding:10px;
+                background:#16a34a;
+            "
+        >
+            30 jours<br>
+            10 000 FCFA
+        </button>
+
+        <button
+            onclick="ajouterAbonnement(${patron.id}, 90)"
+            style="
+                width:auto;
+                padding:10px;
+                background:#f59e0b;
+            "
+        >
+            90 jours<br>
+            30 000 FCFA
+        </button>
+
+        <button
+            onclick="ajouterAbonnement(${patron.id}, 365)"
+            style="
+                width:auto;
+                padding:10px;
+                background:#2563eb;
+            "
+        >
+            365 jours<br>
+            120 000 FCFA
+        </button>
+
+    </div>
+</div> 
+
+
+<div id="abonnement-${patron.id}" style="margin-top:10px;">
+    Chargement abonnement...
+</div> 
+
+            </div>
+        `).join("");
+patrons.forEach(patron => {
+    chargerAbonnement(patron.id);
+});
+    } catch (error) {
+        document.getElementById("listePatrons").innerHTML =
+            "<p>Impossible de charger les patrons.</p>";
+
+        console.error(error);
+    }
+}
+
+
+chargerPatrons();
+async function modifierPatron(id) {
+
+    try {
+
+        const response = await fetch(`/admin/patrons/${id}`);
+
+        if (!response.ok) {
+            throw new Error("Impossible de récupérer le patron");
+        }
+
+        const patron = await response.json();
+
+        const nouveauNom = prompt(
+            "Nom du patron :",
+            patron.nom
+        );
+
+        if (nouveauNom === null) return;
+
+        const nouveauTelephone = prompt(
+            "Téléphone :",
+            patron.telephone || ""
+        );
+
+        if (nouveauTelephone === null) return;
+
+        const nouvelEmail = prompt(
+            "Email :",
+            patron.email || ""
+        );
+
+        if (nouvelEmail === null) return;
+
+        const nouveauMaquis = prompt(
+            "Nom du maquis :",
+            patron.nom_maquis || ""
+        );
+
+        if (nouveauMaquis === null) return;
+
+        const nouveauAdresse = prompt(
+            "Adresse du maquis :",
+            patron.adresse || ""
+        );
+
+        if (nouveauAdresse === null) return;
+
+        const nouveauHoraires = prompt(
+            "Horaires :",
+            patron.horaires || ""
+        );
+
+        if (nouveauHoraires === null) return;
+
+        const update = await fetch(`/admin/patrons/${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                nom: nouveauNom,
+                telephone: nouveauTelephone,
+                email: nouvelEmail,
+                nom_maquis: nouveauMaquis,
+                adresse: nouveauAdresse,
+                horaires: nouveauHoraires
+            })
+        });
+
+        const resultat = await update.json();
+
+        if (!update.ok) {
+            throw new Error(resultat.error || "Erreur");
+        }
+
+        alert("✅ Patron modifié avec succès !");
+
+        chargerPatrons();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("❌ " + error.message);
+    }
+} 
+async function changerStatut(id) {
+
+    const action = confirm(
+        "Voulez-vous modifier le statut de ce maquis ?"
+    );
+
+    if (!action) return;
+
+    const response = await fetch(
+        `/admin/patrons/${id}/statut`,
+        {
+            method: "POST"
+        }
+    );
+
+    const resultat = await response.json();
+
+    if (!response.ok) {
+        alert("❌ " + (resultat.error || "Erreur"));
+        return;
+    }
+
+    alert(
+        resultat.actif
+            ? "✅ Maquis réactivé !"
+            : "⏸️ Maquis suspendu !"
+    );
+
+    chargerPatrons();
+}
+
+async function ajouterAbonnement(id, duree) {
+
+    const prix = {
+        30: 10000,
+        90: 30000,
+        365: 120000
+    };
+
+    const confirmation = confirm(
+        "Confirmer l'abonnement ?\n\n" +
+        duree + " jours\n" +
+        prix[duree] + " FCFA"
+    );
+
+    if (!confirmation) return;
+
+    const response = await fetch(
+        `/admin/patrons/${id}/abonnement`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                duree: duree
+            })
+        }
+    );
+
+    const resultat = await response.json();
+
+    if (!response.ok) {
+        alert(
+            "❌ " +
+            (resultat.error || "Erreur")
+        );
+        return;
+    }
+
+    alert(
+        "✅ Abonnement activé !\n\n" +
+        "Durée : " + duree + " jours\n" +
+        "Montant : " + prix[duree] + " FCFA\n\n" +
+        "Fin : " + resultat.date_fin
+    );
+
+    chargerPatrons();
+} 
+
+
+async function chargerAbonnement(id) {
+
+    try {
+
+        const response = await fetch(
+            `/admin/patrons/${id}/abonnement`
+        );
+
+        const abonnement = await response.json();
+
+        const element = document.getElementById(
+            `abonnement-${id}`
+        );
+
+        if (!abonnement) {
+            element.innerHTML =
+                "💳 Aucun abonnement";
+            return;
+        }
+
+const aujourdHui = new Date();
+const dateFin = new Date(abonnement.date_fin);
+
+if (dateFin >= aujourdHui) {
+
+    element.innerHTML = `
+        💳 <strong>Abonnement actif</strong><br>
+        📅 Début : ${abonnement.date_debut}<br>
+        📅 Fin : ${abonnement.date_fin}
+    `;
+
+} else {
+
+    element.innerHTML = `
+        ❌ <strong>Abonnement expiré</strong><br>
+        📅 Expiré le : ${abonnement.date_fin}
+    `;
+} 
+
+
+    } catch (error) {
+
+        console.error(error);
+
+    }
+} 
+
+</script> 
+
+        </div>
+
+    </div>
+
+</body>
+
+</html> 

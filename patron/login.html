@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion Patron</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f6fa;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            width: 100%;
+            max-width: 420px;
+            padding: 30px;
+            border-radius: 18px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .description {
+            text-align: center;
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 7px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            background: #111;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .message {
+            margin-top: 15px;
+            text-align: center;
+            color: #c00;
+        }
+    </style>
+    <link
+    rel="manifest"
+    href="/patron-app/manifest.json"
+>
+
+<meta
+    name="theme-color"
+    content="#222222"
+>
+
+<script>
+
+if ("serviceWorker" in navigator) {
+
+    window.addEventListener(
+        "load",
+        () => {
+
+            navigator.serviceWorker.register(
+                "/patron-app/sw.js"
+            );
+
+        }
+    );
+
+}
+
+</script> 
+
+</head>
+
+<body>
+
+<div class="card">
+
+    <h1>👤 Espace Patron</h1>
+
+    <p class="description">
+        Connectez-vous pour gérer votre maquis.
+    </p>
+
+    <form id="loginForm">
+
+        <div class="form-group">
+            <label for="email">Email</label>
+
+            <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="patron@email.com"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="password">Mot de passe</label>
+
+            <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Votre mot de passe"
+                required
+            >
+        </div>
+
+        <button type="submit">
+            🔐 SE CONNECTER
+        </button>
+
+    </form>
+
+    <div id="message" class="message"></div>
+
+</div>
+
+<script>
+
+document.getElementById("loginForm").addEventListener("submit", async function(e) {
+
+    e.preventDefault();
+
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    const message = document.getElementById("message");
+
+    message.textContent = "Connexion...";
+
+    try {
+
+        const response = await fetch("/patron/login", {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                email: email,
+                password: password
+            })
+        });
+
+        if (response.ok) {
+            window.location.href = "/patron/dashboard";
+            return;
+        }
+
+        const resultat = await response.json();
+
+        message.textContent =
+            resultat.error || "Email ou mot de passe incorrect.";
+
+    } catch (error) {
+
+        console.error(error);
+
+        message.textContent =
+            "Impossible de contacter le serveur.";
+    }
+
+});
+
+</script>
+
+</body>
+</html> 

@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>Gestion des QR Codes</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+
+    margin: 0;
+
+    padding: 20px;
+
+    font-family: Arial, sans-serif;
+
+    background: #f4f6f9;
+
+}
+
+.header {
+
+    display: flex;
+
+    justify-content:
+        space-between;
+
+    align-items:
+        center;
+
+    margin-bottom:
+        25px;
+
+}
+
+.retour {
+
+    background: #222;
+
+    color: white;
+
+    padding:
+        12px 18px;
+
+    text-decoration:
+        none;
+
+    border-radius:
+        8px;
+
+}
+
+.container {
+
+    background: white;
+
+    padding: 20px;
+
+    border-radius:
+        12px;
+
+    overflow-x:
+        auto;
+
+    box-shadow:
+        0 3px 10px
+        rgba(0,0,0,0.1);
+
+}
+
+table {
+
+    width: 100%;
+
+    min-width:
+        750px;
+
+    border-collapse:
+        collapse;
+
+}
+
+th {
+
+    background:
+        #222;
+
+    color:
+        white;
+
+    padding:
+        12px;
+
+    text-align:
+        left;
+
+}
+
+td {
+
+    padding:
+        12px;
+
+    border-bottom:
+        1px solid #ddd;
+
+}
+
+.qr {
+
+    width:
+        70px;
+
+    height:
+        70px;
+
+    object-fit:
+        contain;
+
+}
+
+button {
+
+    border:
+        none;
+
+    border-radius:
+        7px;
+
+    padding:
+        9px 12px;
+
+    cursor:
+        pointer;
+
+    background:
+        #222;
+
+    color:
+        white;
+
+}
+
+.btn-voir {
+
+    background:
+        #1976d2;
+
+}
+
+.actif {
+
+    color:
+        green;
+
+    font-weight:
+        bold;
+
+}
+
+.inactif {
+
+    color:
+        red;
+
+    font-weight:
+        bold;
+
+}
+
+.vide {
+
+    text-align:
+        center;
+
+    padding:
+        30px;
+
+    color:
+        #777;
+
+}
+
+.modal {
+
+    display:
+        none;
+
+    position:
+        fixed;
+
+    inset:
+        0;
+
+    background:
+        rgba(0,0,0,0.7);
+
+    padding:
+        20px;
+
+}
+
+.modal-content {
+
+    max-width:
+        450px;
+
+    background:
+        white;
+
+    margin:
+        50px auto;
+
+    padding:
+        25px;
+
+    border-radius:
+        12px;
+
+    text-align:
+        center;
+
+}
+
+.fermer {
+
+    float:
+        right;
+
+    font-size:
+        28px;
+
+    cursor:
+        pointer;
+
+}
+
+.qr-grand {
+
+    width:
+        280px;
+
+    max-width:
+        100%;
+
+    margin-top:
+        20px;
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="header">
+
+    <h1>
+        📱 Gestion des QR Codes
+    </h1>
+
+
+    <a
+        href="/admin/dashboard"
+        class="retour"
+    >
+        ← Retour
+    </a>
+
+</div>
+
+
+
+<div class="container">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Maquis</th>
+
+<th>Table</th>
+
+<th>Statut</th>
+
+<th>QR Code</th>
+
+<th>Action</th>
+
+</tr>
+
+</thead>
+
+
+<tbody id="listeQR">
+
+<tr>
+
+<td
+    colspan="5"
+    class="vide"
+>
+
+Chargement...
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+
+
+<div
+    id="modal"
+    class="modal"
+>
+
+<div
+    class="modal-content"
+>
+
+<span
+    class="fermer"
+    onclick="fermerModal()"
+>
+×
+</span>
+
+
+<h2 id="titreQR"></h2>
+
+
+<img
+    id="qrGrand"
+    class="qr-grand"
+>
+
+
+<br><br>
+
+
+<button
+    onclick="fermerModal()"
+>
+Fermer
+</button>
+
+
+</div>
+
+</div>
+
+
+
+<script>
+
+
+const listeQR =
+    document.getElementById(
+        "listeQR"
+    );
+
+
+
+async function chargerQRCodes() {
+
+    try {
+
+        const response =
+            await fetch(
+                "/admin/qrcodes/liste"
+            );
+
+
+        const tables =
+            await response.json();
+
+
+        listeQR.innerHTML =
+            "";
+
+
+        if (!tables.length) {
+
+            listeQR.innerHTML = `
+
+            <tr>
+
+            <td
+                colspan="5"
+                class="vide"
+            >
+
+            Aucune table trouvée.
+
+            </td>
+
+            </tr>
+
+            `;
+
+            return;
+
+        }
+
+
+        tables.forEach(
+            table => {
+
+
+                const statut =
+                    table.actif
+                    ?
+                    `<span class="actif">
+                    Active
+                    </span>`
+                    :
+                    `<span class="inactif">
+                    Désactivée
+                    </span>`;
+
+
+                const qr =
+                    table.qr_code
+                    ?
+                    `<img
+                        src="${table.qr_code}"
+                        class="qr"
+                    >`
+                    :
+                    `Pas encore généré`;
+
+
+                listeQR.innerHTML += `
+
+                <tr>
+
+                <td>
+                    ${table.nom_maquis}
+                </td>
+
+
+                <td>
+                    Table ${table.numero}
+                </td>
+
+
+                <td>
+                    ${statut}
+                </td>
+
+
+                <td>
+                    ${qr}
+                </td>
+
+
+                <td>
+
+                <button
+                    class="btn-voir"
+                    onclick="voirQR(
+                        '${table.nom_maquis}',
+                        '${table.numero}',
+                        '${table.qr_code || ""}'
+                    )"
+                >
+                    Voir QR
+                </button>
+
+                </td>
+
+                </tr>
+
+                `;
+
+            }
+        );
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        listeQR.innerHTML = `
+
+        <tr>
+
+        <td
+            colspan="5"
+            class="vide"
+        >
+
+        Erreur de chargement.
+
+        </td>
+
+        </tr>
+
+        `;
+
+    }
+
+}
+
+
+
+function voirQR(
+    maquis,
+    numero,
+    qr
+) {
+
+    if (!qr) {
+
+        alert(
+            "Ce QR Code n'a pas encore été généré."
+        );
+
+        return;
+
+    }
+
+
+    document.getElementById(
+        "titreQR"
+    ).innerText =
+        maquis +
+        " - Table " +
+        numero;
+
+
+    document.getElementById(
+        "qrGrand"
+    ).src =
+        qr;
+
+
+    document.getElementById(
+        "modal"
+    ).style.display =
+        "block";
+
+}
+
+
+
+function fermerModal() {
+
+    document.getElementById(
+        "modal"
+    ).style.display =
+        "none";
+
+}
+
+
+
+chargerQRCodes();
+
+
+</script>
+
+
+</body>
+
+</html> 
