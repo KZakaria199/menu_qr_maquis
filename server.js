@@ -33,7 +33,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // Page d'accueil
 app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "index.html"));
+    res.sendFile(path.join(__dirname, "menu.html"));
 });
 app.get("/", (req, res) => {
     res.redirect("/menu/menu.html");
