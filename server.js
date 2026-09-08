@@ -9,8 +9,8 @@ const app = express();
 const upload = multer({
     dest: path.join(__dirname, "images")
 }); 
-const BASE_URL =process.env.BASE_URL =
-"http://192.168.100.39:3000";
+
+const BASE_URL = process.env.BASE_URL || "https://menu-qr-maquis-4.onrender.com"; 
 // Lire les données envoyées par les formulaires
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
