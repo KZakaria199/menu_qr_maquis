@@ -35,6 +35,9 @@ app.use(express.static(path.join(__dirname, "public")));
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "index.html"));
 });
+app.get("/", (req, res) => {
+    res.redirect("/menu/menu.html");
+}); 
 
 // Page connexion Super Admin
 app.get("/admin/login", (req, res) => {
