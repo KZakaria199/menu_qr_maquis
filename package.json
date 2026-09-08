@@ -6,13 +6,17 @@
     "start": "node server.js"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.1",
+    "@capacitor/cli": "^8.5.1",
+    "@capacitor/core": "^8.5.1",
     "bcrypt": "^6.0.0",
     "better-sqlite3": "^13.0.3",
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "express-session": "^1.19.0",
     "multer": "^2.2.0",
-    "qrcode": "^1.5.4"
+    "qrcode": "^1.5.4",
+    "sqlite3": "^6.0.1"
   },
   "engines": {
     "node": "18.x"

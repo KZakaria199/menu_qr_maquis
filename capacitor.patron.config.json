@@ -1,9 +1,0 @@
-{
-  "appId": "com.menuqr.patron",
-  "appName": "Menu QR Patron",
-  "webDir": "patron",
-  "server": {
-    "url": "http://192.168.100.39:3000/patron/login",
-    "cleartext": true
-  }
-} 

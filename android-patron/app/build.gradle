@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace = "com.menuqr.admin"
+    namespace = "com.menuqr.patron"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.menuqr.admin"
+        applicationId "com.menuqr.patron"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

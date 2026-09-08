@@ -1,0 +1,9 @@
+{
+  "appId": "com.menuqr.admin",
+  "appName": "Menu QR Admin",
+  "webDir": "admin",
+  "server": {
+    "url": "http://192.168.100.39:3000/admin/login",
+    "cleartext": true
+  }
+} 

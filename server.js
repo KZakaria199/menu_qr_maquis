@@ -9,8 +9,8 @@ const app = express();
 const upload = multer({
     dest: path.join(__dirname, "images")
 }); 
-const BASE_URL =process.env.BASE_URL ||
-`http://192.168.100.39${PORT}`;
+const BASE_URL =process.env.BASE_URL =
+"http://192.168.100.39:3000";
 // Lire les données envoyées par les formulaires
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -3737,10 +3737,7 @@ app.get("/admin/qrcodes/liste", (req, res) => {
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Serveur démarré sur le port ${PORT}`);
-  console.log(`server sur http://0.0.0.0:${PORT}`);
-    console.log(
-        `Adresse locale : ${BASE_URL}`
-    );
-
+    console.log(`Serveur démarré sur le port ${PORT}`);
+    console.log(`Serveur sur http://0.0.0.0:${PORT}`);
+    console.log(`Adresse locale : ${BASE_URL}`);
 }); 
