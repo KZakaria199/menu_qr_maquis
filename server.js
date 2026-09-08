@@ -2013,7 +2013,9 @@ app.get("/menu/produits", (req, res) => {
             tables_maquis.numero,
             maquis.id AS maquis_id,
             maquis.nom,
-            maquis.actif
+            maquis.actif,
+            maquis.abonnement_fin
+        
          FROM tables_maquis
          JOIN maquis
             ON maquis.id = tables_maquis.maquis_id
