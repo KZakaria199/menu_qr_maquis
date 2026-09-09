@@ -1,9 +1,0 @@
-{
-  "appId": "com.menuqr.admin",
-  "appName": "Menu QR Admin",
-  "webDir": "admin",
-  "server": {
-    "url": "https://menu-qr-maquis-4.onrender.com/admin/login",
-    "cleartext": true
-  }
-} 

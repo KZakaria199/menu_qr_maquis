@@ -1,0 +1,9 @@
+{
+  "appId": "com.menuqr.patron",
+  "appName": "Menu QR Patron",
+  "webDir": "patron",
+  "server": {
+    "url": "https://menu-qr-maquis-4.onrender.com/patron/login",
+    "cleartext": true
+  }
+} 

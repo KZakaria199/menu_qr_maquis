@@ -3738,6 +3738,154 @@ app.get("/admin/qrcodes/liste", (req, res) => {
     );
 
 }); 
+// =====================================
+// SUPER ADMIN - SUPPRIMER UN PATRON
+// =====================================
+app.delete("/admin/patrons/:id", (req, res) => {
+
+    if (!req.session.adminId) {
+        return res.status(401).json({
+            error: "Non autorisé"
+        });
+    }
+
+    const patronId = req.params.id;
+
+    db.get(
+        `SELECT id FROM maquis WHERE patron_id = ?`,
+        [patronId],
+        (err, maquis) => {
+
+            if (err) {
+                console.error("Erreur recherche maquis :", err.message);
+                return res.status(500).json({
+                    error: "Erreur serveur"
+                });
+            }
+
+            if (!maquis) {
+
+                db.run(
+                    `DELETE FROM patrons WHERE id = ?`,
+                    [patronId],
+                    function (err) {
+
+                        if (err) {
+                            console.error(
+                                "Erreur suppression patron :",
+                                err.message
+                            );
+
+                            return res.status(500).json({
+                                error: "Impossible de supprimer le patron"
+                            });
+                        }
+
+                        if (this.changes === 0) {
+                            return res.status(404).json({
+                                error: "Patron introuvable"
+                            });
+                        }
+
+                        return res.json({
+                            success: true
+                        });
+                    }
+                );
+
+                return;
+            }
+
+            const maquisId = maquis.id;
+
+            db.serialize(() => {
+
+                db.run("BEGIN TRANSACTION");
+
+                db.run(
+                    `DELETE FROM commande_produits
+                     WHERE commande_id IN (
+                         SELECT id FROM commandes WHERE maquis_id = ?
+                     )`,
+                    [maquisId]
+                );
+
+                db.run(
+                    `DELETE FROM commandes WHERE maquis_id = ?`,
+                    [maquisId]
+                );
+
+                db.run(
+                    `DELETE FROM produits WHERE maquis_id = ?`,
+                    [maquisId]
+                );
+
+                db.run(
+                    `DELETE FROM categories WHERE maquis_id = ?`,
+                    [maquisId]
+                );
+
+                db.run(
+                    `DELETE FROM tables_maquis WHERE maquis_id = ?`,
+                    [maquisId]
+                );
+
+                db.run(
+                    `DELETE FROM abonnements WHERE maquis_id = ?`,
+                    [maquisId]
+                );
+
+                db.run(
+                    `DELETE FROM maquis WHERE id = ?`,
+                    [maquisId]
+                );
+
+                db.run(
+                    `DELETE FROM patrons WHERE id = ?`,
+                    [patronId],
+                    function (err) {
+
+                        if (err) {
+
+                            console.error(
+                                "Erreur suppression patron :",
+                                err.message
+                            );
+
+                            db.run("ROLLBACK");
+
+                            return res.status(500).json({
+                                error: "Impossible de supprimer le patron"
+                            });
+                        }
+
+                        db.run("COMMIT", (commitErr) => {
+
+                            if (commitErr) {
+
+                                console.error(
+                                    "Erreur validation suppression :",
+                                    commitErr.message
+                                );
+
+                                return res.status(500).json({
+                                    error: "Erreur lors de la suppression"
+                                });
+                            }
+
+                            return res.json({
+                                success: true
+                            });
+
+                        });
+                    }
+                );
+
+            });
+        }
+    );
+}); 
+
 // Démarrage du serveur
 const PORT = process.env.PORT || 3000;
 

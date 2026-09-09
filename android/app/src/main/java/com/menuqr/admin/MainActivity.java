@@ -1,4 +1,4 @@
-package com.menuqr.patron;
+package com.menuqr.admin;
 
 import com.getcapacitor.BridgeActivity;
 

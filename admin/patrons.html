@@ -257,6 +257,17 @@ async function chargerPatrons() {
                         ? "🟢 Maquis actif"
                         : "🔴 Maquis désactivé"}
                 </p>
+                <button
+    onclick="supprimerPatron(${patron.id})"
+    style="
+        width:auto;
+        padding:10px 15px;
+        margin-top:10px;
+        background:#dc2626;
+    "
+>
+    🗑️ Supprimer
+</button>
              <button
     onclick="modifierPatron(${patron.id})"
     style="
@@ -566,6 +577,40 @@ if (dateFin >= aujourdHui) {
 
     }
 } 
+async function supprimerPatron(id) {
+
+    const confirmation = confirm(
+        "⚠️ ATTENTION !\n\n" +
+        "Voulez-vous vraiment supprimer ce patron ?\n\n" +
+        "Cette action est irréversible."
+    );
+
+    if (!confirmation) return;
+
+    try {
+
+        const response = await fetch(`/admin/patrons/${id}`, {
+            method: "DELETE"
+        });
+
+        const resultat = await response.json();
+
+        if (!response.ok) {
+            alert("❌ " + (resultat.error || "Erreur lors de la suppression"));
+            return;
+        }
+
+        alert("✅ Patron supprimé avec succès !");
+
+        chargerPatrons();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("❌ Impossible de supprimer le patron.");
+    }
+}
 
 </script> 
 
