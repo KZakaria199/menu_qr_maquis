@@ -412,31 +412,48 @@ async function commander() {
         return;
     }
 
-    const response = await fetch("/menu/commande", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            table: numeroTable,
-            produits: panier
-        })
-    });
+    try {
 
-    const resultat = await response.json();
+        const response = await fetch("/menu/commande", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                table: numeroTable,
+                produits: panier
+            })
+        });
 
-    if (!response.ok) {
-        alert("❌ " + (resultat.error || "Erreur"));
-        return;
+        const resultat = await response.json();
+
+        if (!response.ok) {
+            alert("❌ " + (resultat.error || "Erreur"));
+            return;
+        }
+
+        // Vider le panier
+        panier = [];
+        afficherPanier();
+
+        // Si WhatsApp est activé pour ce maquis
+        if (resultat.whatsapp_url) {
+
+            window.location.href = resultat.whatsapp_url;
+
+            return;
+        }
+
+        // Sinon, la commande reste seulement dans le système
+        alert("✅ Commande envoyée au maquis !");
+
+    } catch (error) {
+
+        console.error("Erreur commande :", error);
+
+        alert("❌ Impossible d'envoyer la commande.");
     }
-
-    alert("✅ Commande envoyée au maquis !");
-
-    panier = [];
-
-    afficherPanier();
 }
-
 chargerMenu(); 
 
 let panier = [];
@@ -467,7 +484,26 @@ if (existant) {
 } 
 
     afficherPanier();
+
+    const bouton =
+        document.getElementById(`boutonProduit-${id}`);
+
+    if (bouton) {
+
+        bouton.style.background = "#28a745";
+        bouton.style.color = "white";
+        bouton.textContent = "✓ Ajouté";
+
+        setTimeout(() => {
+
+            bouton.style.background = "";
+            bouton.style.color = "";
+            bouton.textContent = "➕ Ajouter au panier";
+
+        }, 800);
+    }
 }
+
 function augmenterQuantite(id) {
 
     const produit =
