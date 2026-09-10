@@ -1804,8 +1804,8 @@ app.post("/patron/tables/:id/qr", async (req, res) => {
                 });
             }
 
-            const lien =
-    `${BASE_URL}/menu?table=${table.numero}`; 
+           const urlMenu =
+    `${BASE_URL}/menu?table=${table.numero}&maquis=${table.maquis_id}`;
             try {
 
                 const qr = await QRCode.toDataURL(lien);
@@ -2004,7 +2004,7 @@ app.get("/menu", (req, res) => {
 app.get("/menu/produits", (req, res) => {
 
     const numeroTable = req.query.table;
-
+const maquisId = req.query.maquis;
     if (!numeroTable) {
         return res.status(400).json({
             error: "Table non précisée."
@@ -2023,8 +2023,9 @@ app.get("/menu/produits", (req, res) => {
          FROM tables_maquis
          JOIN maquis
             ON maquis.id = tables_maquis.maquis_id
-         WHERE tables_maquis.numero = ?`,
-        [numeroTable],
+         WHERE tables_maquis.numero = ?
+AND tables_maquis.maquis_id = ?`,
+[numeroTable, maquisId],
         (err, table) => {
 
             if (err) {
@@ -2123,36 +2124,37 @@ if (
 
 app.post("/menu/commande", (req, res) => {
 
-    const { table, produits } = req.body;
+    const { table, maquis, produits } = req.body;
 
     if (!table || !Array.isArray(produits) || produits.length === 0) {
 
         return res.status(400).json({
-            error: "Commande vide."
+            error: "Commande vide ou maquis non précisé."
         });
 
     }
+if (!tableInfo) {
+    return res.status(404).json({
+        error: "Table introuvable pour ce maquis."
+    });
+}
 
-
-    // Chercher la table
-    db.get(
-        `
-       SELECT
-    tables_maquis.*,
-    maquis.actif,
-    maquis.abonnement_fin
-FROM tables_maquis
-
-INNER JOIN maquis
-    ON maquis.id =
-    tables_maquis.maquis_id
-
-WHERE tables_maquis.numero = ? 
-        `,
-        [table],
-
-        (err, tableInfo) => {
-
+// Chercher la table DU BON MAQUIS
+db.get(
+    `
+    SELECT
+        tables_maquis.*,
+        maquis.actif,
+        maquis.abonnement_fin
+    FROM tables_maquis
+    INNER JOIN maquis
+        ON maquis.id = tables_maquis.maquis_id
+    WHERE tables_maquis.numero = ?
+    AND tables_maquis.maquis_id = ?
+    `,
+    [table, maquis],
+    (err, tableInfo) => {
+   
             if (err) {
 
                 console.error(err);
@@ -2849,9 +2851,8 @@ app.get(
                     });
 
                 }
-
 const urlMenu =
-    `${BASE_URL}/menu?table=${table.numero}`; 
+    `${BASE_URL}/menu?maquis=${table.maquis_id}&table=${table.numero}`;
                 QRCode.toDataURL(
                     urlMenu,
                     (err, qrcode) => {
@@ -3072,7 +3073,7 @@ app.get("/menu/maquis/:table", (req, res) => {
 
     const numeroTable =
         req.params.table;
-
+const maquisId = req.query.maquis;
     db.get(
         `
         SELECT
@@ -3084,9 +3085,10 @@ app.get("/menu/maquis/:table", (req, res) => {
         FROM tables_maquis
         INNER JOIN maquis
             ON tables_maquis.maquis_id = maquis.id
-        WHERE tables_maquis.numero = ?
-        `,
-        [numeroTable],
+        
+            WHERE tables_maquis.numero = ?
+AND tables_maquis.maquis_id = ?`,
+[numeroTable, maquisId],
         (err, maquis) => {
 
             if (err) {
@@ -3558,7 +3560,7 @@ app.post(
                     // Pour l'instant on utilise
                     // l'adresse actuelle de ton serveur.
 const urlMenu =
-    `${BASE_URL}/menu?table=${table.numero}`; 
+    `${BASE_URL}/menu?maquis=${table.maquis_id}&table=${table.numero}`;
 
                     const qrCode =
                         await QRCode.toDataURL(

@@ -266,6 +266,7 @@ body {
 
 const params = new URLSearchParams(window.location.search);
 const numeroTable = params.get("table");
+const maquisId = params.get("maquis");
 
 document.getElementById("table").textContent =
     numeroTable
@@ -298,9 +299,7 @@ document.getElementById("table").textContent =
     try {
 
         const response =
-            await fetch(
-                `/menu/maquis/${table}`
-            );
+            await fetch(`/menu/maquis/${table}?maquis=${maquisId}`)
 
 
         const maquis =
@@ -356,7 +355,7 @@ document.getElementById("table").textContent =
 async function chargerMenu() {
 
     const response =
-        await fetch(`/menu/produits?table=${numeroTable}`);
+        await fetch(`/menu/produits?table=${numeroTable}&maquis=${maquisId}`)
 
     const resultat =
         await response.json();
@@ -418,11 +417,11 @@ async function commander() {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                table: numeroTable,
-                produits: panier
-            })
+            },body: JSON.stringify({
+    table: numeroTable,
+    maquis: maquisId,
+    produits: panier
+})
         });
 
         const resultat = await response.json();
