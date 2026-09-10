@@ -124,6 +124,7 @@ app.get("/admin/patrons/liste", (req, res) => {
             patrons.nom,
             patrons.telephone,
             patrons.email,
+            patrons.whatsapp_actif,
             maquis.id AS maquis_id,
             maquis.nom AS nom_maquis,
             maquis.actif
@@ -2263,13 +2264,110 @@ if (
                         // Tous les produits sont terminés
                         if (index >= produits.length) {
 
-                            return res.json({
-                                success: true,
-                                commande_id: commandeId,
-                                total: total
-                            });
+    // Vérifier si WhatsApp est activé
+    db.get(
+        `SELECT
+            patrons.telephone,
+            patrons.whatsapp_actif,
+            maquis.nom AS nom_maquis
+         FROM maquis
+         INNER JOIN patrons
+            ON patrons.id = maquis.patron_id
+         WHERE maquis.id = ?`,
+        [maquisId],
+        (err, patronInfo) => {
 
-                        }
+            if (err) {
+                console.error("Erreur WhatsApp :", err.message);
+
+                return res.json({
+                    success: true,
+                    commande_id: commandeId,
+                    total: total
+                });
+            }
+
+            let whatsapp_url = null;
+
+            if (
+                patronInfo &&
+                patronInfo.whatsapp_actif &&
+                patronInfo.telephone
+            ) {
+
+                let numero = String(
+                    patronInfo.telephone
+                ).replace(/\D/g, "");
+
+                // Numéro Burkina Faso
+                if (numero.length === 8) {
+                    numero = "226" + numero;
+                }
+
+                // Construire le message
+                let message =
+                    "🔔 NOUVELLE COMMANDE\n\n" +
+                    "🏪 Maquis : " +
+                    patronInfo.nom_maquis +
+                    "\n" +
+                    "🪑 Table : " +
+                    table +
+                    "\n\n";
+
+                produits.forEach(produit => {
+
+                    const nom =
+                        produit.nom ||
+                        produit.name ||
+                        "Produit";
+
+                    const prix =
+                        Number(produit.prix || 0);
+
+                    const quantite =
+                        Number(produit.quantite || 1);
+
+                    const sousTotal =
+                        prix * quantite;
+
+                    message +=
+                        "• " +
+                        nom +
+                        " x" +
+                        quantite +
+                        " = " +
+                        sousTotal +
+                        " FCFA\n";
+                });
+
+                message +=
+                    "\n💰 TOTAL : " +
+                    total +
+                    " FCFA";
+
+                whatsapp_url =
+                    "https://wa.me/" +
+                    numero +
+                    "?text=" +
+                    encodeURIComponent(message);
+            }
+
+            return res.json({
+                success: true,
+                commande_id: commandeId,
+                total: total,
+                whatsapp_actif:
+                    patronInfo
+                        ? patronInfo.whatsapp_actif
+                        : 0,
+                whatsapp_url: whatsapp_url
+            });
+
+        }
+    );
+
+    return;
+}
 
 
                         const produit = produits[index];
@@ -2515,6 +2613,20 @@ db.run(`
 
 }); 
 
+// ===============================
+// AJOUT OPTION WHATSAPP PATRON
+// ===============================
+
+db.run(`
+    ALTER TABLE patrons
+    ADD COLUMN whatsapp_actif INTEGER DEFAULT 0
+`, (err) => {
+    if (err && !err.message.includes("duplicate column name")) {
+        console.error("Erreur colonne whatsapp_actif :", err.message);
+    } else {
+        console.log("✅ Option WhatsApp prête.");
+    }
+});
 // ===================================
 // INFORMATIONS ABONNEMENT DU PATRON
 // ===================================
@@ -3885,7 +3997,68 @@ app.delete("/admin/patrons/:id", (req, res) => {
         }
     );
 }); 
+// ===============================
+// ACTIVER / DESACTIVER WHATSAPP
+// ===============================
 
+app.post("/admin/patrons/:id/whatsapp", (req, res) => {
+
+    if (!req.session.adminId) {
+        return res.status(401).json({
+            error: "Non autorisé"
+        });
+    }
+
+    const patronId = req.params.id;
+
+    db.get(
+        `SELECT whatsapp_actif FROM patrons WHERE id = ?`,
+        [patronId],
+        (err, patron) => {
+
+            if (err) {
+                console.error(err);
+
+                return res.status(500).json({
+                    error: "Erreur serveur"
+                });
+            }
+
+            if (!patron) {
+                return res.status(404).json({
+                    error: "Patron introuvable"
+                });
+            }
+
+            const nouveauStatut =
+                patron.whatsapp_actif ? 0 : 1;
+
+            db.run(
+                `UPDATE patrons
+                 SET whatsapp_actif = ?
+                 WHERE id = ?`,
+                [nouveauStatut, patronId],
+                (err) => {
+
+                    if (err) {
+                        console.error(err);
+
+                        return res.status(500).json({
+                            error: "Impossible de modifier WhatsApp"
+                        });
+                    }
+
+                    res.json({
+                        success: true,
+                        whatsapp_actif: nouveauStatut
+                    });
+
+                }
+            );
+
+        }
+    );
+});
 // Démarrage du serveur
 const PORT = process.env.PORT || 3000;
 

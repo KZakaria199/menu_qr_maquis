@@ -251,6 +251,11 @@ async function chargerPatrons() {
                 <h3>👤 ${patron.nom}</h3>
                 <p>🏪 ${patron.nom_maquis || "Aucun maquis"}</p>
                 <p>📱 ${patron.telephone || "Non renseigné"}</p>
+                <p>
+    ${patron.whatsapp_actif
+        ? "🟢 WhatsApp activé"
+        : "⚪ WhatsApp désactivé"}
+</p>
                 <p>📧 ${patron.email}</p>
                 <p>
                     ${patron.actif
@@ -288,6 +293,17 @@ async function chargerPatrons() {
     "
 >
     ${patron.actif ? "⏸️ Suspendre" : "▶️ Réactiver"}
+</button>
+<button
+    onclick="changerWhatsApp(${patron.id})"
+    style="
+        width:auto;
+        padding:10px 15px;
+        margin-top:10px;
+        background:${patron.whatsapp_actif ? '#16a34a' : '#6b7280'};
+    "
+>
+    ${patron.whatsapp_actif ? "🟢 WhatsApp ACTIVÉ" : "⚪ WhatsApp DÉSACTIVÉ"}
 </button>
 
 <div style="
@@ -340,7 +356,19 @@ async function chargerPatrons() {
             365 jours<br>
             120 000 FCFA
         </button>
-
+<button
+    onclick="changerWhatsApp(${patron.id})"
+    style="
+        width:auto;
+        padding:10px 15px;
+        margin-top:10px;
+        background:${patron.whatsapp_actif ? '#16a34a' : '#6b7280'};
+    "
+>
+    ${patron.whatsapp_actif
+        ? "🟢 WhatsApp ACTIVÉ"
+        : "⚪ WhatsApp DÉSACTIVÉ"}
+</button>
     </div>
 </div> 
 
@@ -612,6 +640,87 @@ async function supprimerPatron(id) {
     }
 }
 
+async function changerWhatsApp(id) {
+
+    const confirmation = confirm(
+        "Voulez-vous modifier l'activation de WhatsApp pour ce patron ?"
+    );
+
+    if (!confirmation) return;
+
+    try {
+
+        const response = await fetch(
+            `/admin/patrons/${id}/whatsapp`,
+            {
+                method: "POST"
+            }
+        );
+
+        const resultat = await response.json();
+
+        if (!response.ok) {
+            alert("❌ " + (resultat.error || "Erreur"));
+            return;
+        }
+
+        alert(
+            resultat.whatsapp_actif
+                ? "🟢 WhatsApp activé !"
+                : "⚪ WhatsApp désactivé !"
+        );
+
+        chargerPatrons();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("❌ Impossible de modifier WhatsApp.");
+    }
+}
+async function changerWhatsApp(id) {
+
+    const confirmation = confirm(
+        "Voulez-vous modifier l'activation de WhatsApp pour ce patron ?"
+    );
+
+    if (!confirmation) return;
+
+    try {
+
+        const response = await fetch(
+            `/admin/patrons/${id}/whatsapp`,
+            {
+                method: "POST"
+            }
+        );
+
+        const resultat = await response.json();
+
+        if (!response.ok) {
+            alert(
+                "❌ " +
+                (resultat.error || "Erreur")
+            );
+            return;
+        }
+
+        alert(
+            resultat.whatsapp_actif
+                ? "🟢 WhatsApp activé !"
+                : "⚪ WhatsApp désactivé !"
+        );
+
+        chargerPatrons();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("❌ Impossible de modifier WhatsApp.");
+    }
+}
 </script> 
 
         </div>
