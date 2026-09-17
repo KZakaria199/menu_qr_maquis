@@ -2459,23 +2459,6 @@ if (
     );
 
 }); 
-
-// ===============================
-// PRÉPARER LA TABLE DES PRODUITS
-// DES COMMANDES
-// ===============================
-
-db.serialize(() => {
-
-    // Créer la table si elle n'existe pas
-    db.run(`
-        CREATE TABLE IF NOT EXISTS commande_produits (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            commande_id INTEGER NOT NULL,
-            produit_id INTEGER
-        )
-    `);
-
 // ===============================
 // AJOUT COLONNES ABONNEMENT
 // ===============================
@@ -2495,7 +2478,7 @@ db.run(`
         );
     }
 
-});
+
 
 
 db.run(`
