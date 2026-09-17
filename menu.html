@@ -483,6 +483,24 @@ if (existant) {
 } 
 
     afficherPanier();
+
+    const bouton =
+        document.getElementById(`boutonProduit-${id}`);
+
+    if (bouton) {
+
+        bouton.style.background = "#28a745";
+        bouton.style.color = "white";
+        bouton.textContent = "✓ Ajouté";
+
+        setTimeout(() => {
+
+            bouton.style.background = "";
+            bouton.style.color = "";
+            bouton.textContent = "➕ Ajouter au panier";
+
+        }, 800);
+    }
 }
 
 function augmenterQuantite(id) {
