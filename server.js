@@ -3,7 +3,11 @@ const path = require("path");
 const session = require("express-session");
 const bcrypt = require("bcrypt");
 const QRCode = require("qrcode");
-const db = require("./config/database");
+const { Pool } = require("pg");
+const db = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+}); 
 const multer =require("multer");
 const app = express();
 const upload = multer({
@@ -1597,33 +1601,24 @@ app.put(
     }
 ); 
 
-app.get("/patron/produits/liste", (req, res) => {
+app.get("/patron/produits/liste", async (req, res) => {
+  if (!req.session.patronId) {
+    return res.status(401).json({ error: "Non autorisé" });
+  }
 
-    if (!req.session.patronId) {
-        return res.status(401).json({
-            error: "Non autorisé"
-        });
-    }
-
-    db.all(
-        `SELECT * FROM produits
-         WHERE maquis_id = ?
-         ORDER BY id DESC`,
-        [req.session.maquisId],
-        (err, rows) => {
-
-            if (err) {
-                console.error(err);
-
-                return res.status(500).json({
-                    error: "Erreur serveur"
-                });
-            }
-
-            res.json(rows);
-        }
+  try {
+    const result = await db.query(
+      `SELECT * FROM produits
+       WHERE maquis_id = $1
+       ORDER BY id DESC`,
+      [req.session.maquisId]
     );
-}); 
+    res.json(result.rows); // .rows au lieu de rows
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Erreur serveur" });
+  }
+});  
 app.get("/patron/tables", (req, res) => {
 
     if (!req.session.patronId) {

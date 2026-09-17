@@ -1,13 +1,16 @@
-const sqlite3 = require("sqlite3").verbose();
-const path = require("path");
+const { Pool } = require("pg");
 
-const dbPath = path.join(__dirname, "..", "maquis.db");
-
-const db = new sqlite3.Database(dbPath, (err) => {
-    if (err) {
-        console.error("Erreur de connexion à la base de données :", err.message);
-    } else {
-        console.log("Base de données connectée avec succès.");
-    }
+const db = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
 });
-module.exports = db;
+
+db.connect((err) => {
+  if (err) {
+    console.error("Erreur de connexion à PostgreSQL :", err);
+  } else {
+    console.log("Base de données PostgreSQL connectée avec succès.");
+  }
+});
+
+module.exports = db; 
