@@ -2136,11 +2136,6 @@ app.post("/menu/commande", (req, res) => {
         });
 
     }
-if (!tableInfo) {
-    return res.status(404).json({
-        error: "Table introuvable pour ce maquis."
-    });
-}
 
 // Chercher la table DU BON MAQUIS
 db.get(
@@ -2176,6 +2171,11 @@ if (!tableInfo.actif) {
 
 }
 
+if (!tableInfo) {
+    return res.status(404).json({
+        error: "Table introuvable pour ce maquis."
+    });
+}
 
 if (!tableInfo.abonnement_fin) {
 
