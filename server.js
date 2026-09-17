@@ -240,24 +240,23 @@ app.post("/admin/patrons/:id/statut", (req, res) => {
 
             const nouveauStatut = maquis.actif ? 0 : 1;
 
-            db.run(
-                `UPDATE maquis SET actif = ? WHERE patron_id = ?`,
-                [nouveauStatut, patronId],
-                (err) => {
+          db.query(
+  `UPDATE maquis SET actif = $1 WHERE patron_id = $2`,
+  [nouveauStatut, patronId]
+)
+.then(() => {
+  res.json({
+    success: true,
+    actif: nouveauStatut
+  });
+})
+.catch(err => {
+  console.error(err);
+  return res.status(500).json({
+    error: "Impossible de modifier le statut"
+  });
+}); 
 
-                    if (err) {
-                        console.error(err);
-                        return res.status(500).json({
-                            error: "Impossible de modifier le statut"
-                        });
-                    }
-
-                    res.json({
-                        success: true,
-                        actif: nouveauStatut
-                    });
-                }
-            );
         }
     );
 }); 
