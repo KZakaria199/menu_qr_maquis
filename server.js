@@ -318,33 +318,34 @@ app.delete("/patron/produits/:id", (req, res) => {
 
     const produitId = req.params.id;
 
-    db.run(
-        `DELETE FROM produits
-         WHERE id = ? AND maquis_id = ?`,
-        [produitId, req.session.maquisId],
-        function(err) {
+db.query(
+  `DELETE FROM produits
+   WHERE id = $1 AND maquis_id = $2`,
+  [produitId, req.session.maquisId]
+)
+.then(result => {
 
-            if (err) {
-                console.error(err);
+  if (result.rowCount === 0) {
+    return res.status(404).json({
+      error: "Produit introuvable."
+    });
+  }
 
-                return res.status(500).json({
-                    error: "Erreur lors de la suppression."
-                });
-            }
-
-            if (this.changes === 0) {
-                return res.status(404).json({
-                    error: "Produit introuvable."
-                });
-            }
-
-            res.json({
-                success: true,
-                message: "Produit supprimé avec succès."
-            });
+  res.json({
+    success: true,
+    message: "Produit supprimé"
+  });
+})
+.catch(err => {
+  console.error(err);
+  return res.status(500).json({
+    error: "Erreur lors de la suppression."
+     });
+                }
+            );
         }
     );
-}); 
+
 // ===============================
 // CHANGER LA DISPONIBILITÉ
 // ===============================
