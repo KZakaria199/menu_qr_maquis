@@ -173,45 +173,28 @@ app.post("/admin/patrons", async (req, res) => {
     try {
 
         const hash = await bcrypt.hash(motDePasse, 10);
-
-        db.run(
-            `INSERT INTO patrons
-            (nom, telephone, email, mot_de_passe)
-            VALUES (?, ?, ?, ?)`,
-            [nomPatron, telephone, email, hash],
-            function (err) {
-
-                if (err) {
-                    console.error(err);
-
-                    if (err.message.includes("UNIQUE")) {
-                        return res.status(400).send("Cet email existe déjà.");
-                    }
-
-                    return res.status(500).send("Erreur lors de la création du patron.");
-                }
-
-                const patronId = this.lastID;
-
-                db.run(
-                    `INSERT INTO maquis
-                    (patron_id, nom, telephone, adresse, horaires)
-                    VALUES (?, ?, ?, ?, ?)`,
-                    [
-                        patronId,
-                        nomMaquis,
-                        telephone,
-                        adresse || "",
-                        horaires || ""
-                    ],
-                    function (err) {
-
-                        if (err) {
-                            console.error(err);
-                            return res.status(500).send(
-                                "Patron créé, mais erreur lors de la création du maquis."
-                            );
-                        }
+db.query(
+  `INSERT INTO patrons
+  (nom, telephone, email, mot_de_passe)
+  VALUES ($1, $2, $3, $4) RETURNING id`,
+  [nomPatron, telephone, email, hash]
+)
+.then(result => {
+  const patronId = result.rows[0].id; 
+              db.query(
+  `INSERT INTO maquis
+  (patron_id, nom, telephone, adresse, horaires)
+  VALUES ($1, $2, $3, $4, $5)`,
+  [
+    patronId,
+    nomMaquis,
+    telephone,
+    adresse || "",
+    horaires || ""
+  ]
+)
+.then(() => { 
+        
 
                         res.redirect("/admin/patrons");
                     }
@@ -221,8 +204,10 @@ app.post("/admin/patrons", async (req, res) => {
 
     } catch (error) {
         console.error(error);
-        res.status(500).send("Erreur serveur.");
+        if (error.code === '23505')
+            return res.status(400).send("ce emmail existe déjà.");
     }
+res.status(500).send("Erreur server.")
 }); 
 // Suspendre ou réactiver un maquis
 app.post("/admin/patrons/:id/statut", (req, res) => {
