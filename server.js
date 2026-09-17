@@ -1804,8 +1804,9 @@ app.post("/patron/tables/:id/qr", async (req, res) => {
                 });
             }
 
-           const urlMenu =
-    `${BASE_URL}/menu?table=${table.numero}&maquis=${table.maquis_id}`;
+        const lien =
+    `${BASE_URL}/menu?table=${encodeURIComponent(table.numero)}&maquis=${encodeURIComponent(req.session.maquisId)}`; 
+   
             try {
 
                 const qr = await QRCode.toDataURL(lien);
@@ -1833,11 +1834,13 @@ app.post("/patron/tables/:id/qr", async (req, res) => {
 
             } catch (error) {
 
-                res.status(500).json({
-                    error: "Impossible de créer le QR"
-                });
+    console.error("ERREUR QR DÉTAILLÉE :", error);
 
-            }
+    return res.status(500).json({
+        error: "Impossible de créer le QR : " + error.message
+    });
+
+} 
         }
     );
 }); 
