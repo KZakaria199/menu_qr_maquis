@@ -359,53 +359,66 @@ app.put("/patron/produits/:id/disponibilite", (req, res) => {
     }
 
     const produitId = req.params.id;
+db.query(
+  `UPDATE produits
+   SET disponible = CASE
+     WHEN disponible = 1 THEN 0
+     ELSE 1
+   END
+   WHERE id = $1 AND maquis_id = $2`,
+  [produitId, req.session.maquisId]
+)
+.then(result => {
 
-    db.run(
-        `UPDATE produits
-         SET disponible = CASE
-             WHEN disponible = 1 THEN 0
-             ELSE 1
-         END
-         WHERE id = ? AND maquis_id = ?`,
-        [produitId, req.session.maquisId],
-        function(err) {
+  if (result.rowCount === 0) {
+    return res.status(404).json({
+      error: "Produit introuvable."
+    });
+  }
 
-            if (err) {
-                console.error(err);
+  res.json({
+    success: true,
+    message: "Disponibilité mise à jour"
+  });
+})
+.catch(err => {
+  console.error(err);
+  return res.status(500).json({
+    error: "Erreur lors du changement"
+  });
 
-                return res.status(500).json({
-                    error: "Erreur lors du changement."
-                });
-            }
 
-            if (this.changes === 0) {
-                return res.status(404).json({
-                    error: "Produit introuvable."
-                });
-            }
+          db.query(
+  `SELECT disponible
+   FROM produits
+   WHERE id = $1 AND maquis_id = $2`,
+  [produitId, req.session.maquisId]
+)
+.then(result => {
+  const produit = result.rows[0];
 
-            db.get(
-                `SELECT disponible
-                 FROM produits
-                 WHERE id = ? AND maquis_id = ?`,
-                [produitId, req.session.maquisId],
-                (err, produit) => {
+  if (!produit) {
+    return res.status(404).json({
+      error: "Produit introuvable."
+    });
+  }
 
-                    if (err || !produit) {
-                        return res.status(500).json({
-                            error: "Erreur serveur."
-                        });
-                    }
+  res.json({
+    success: true,
+    disponible: produit.disponible
+  });
+})
+.catch(err => {
+  console.error(err);
+  return res.status(500).json({
+    error: "Erreur serveur."
+  });
+}); 
 
-                    res.json({
-                        success: true,
-                        disponible: produit.disponible
                     });
                 }
             );
-        }
-    );
-}); 
+         
 
 // Modifier les informations d'un patron
 app.put("/admin/patrons/:id", (req, res) => {
